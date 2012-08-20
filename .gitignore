@@ -1,0 +1,12 @@
+*.pyc
+*.pyo
+*.swp
+*.orig
+*.swo
+*.egg-info
+*~
+local_settings.py
+Thumbs.db
+*.log*
+.DS_Store
+.project
