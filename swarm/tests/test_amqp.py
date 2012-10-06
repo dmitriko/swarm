@@ -4,11 +4,11 @@ import time
 
 from tornado.options import options
 
-from swarm.node.amqp import NodeAMQPClient
 import pika
 
-from swarm.manager.amqp import ManagerAMQPClient
-from swarm.common.entities.event import Event
+from swarm.amqp.nclient import NodeAMQPClient
+from swarm.amqp.mclient import ManagerAMQPClient
+from swarm.events import Event
 
 from .base import BaseTestCase
 
@@ -68,11 +68,12 @@ class AMQPCase(BaseTestCase):
 
         self.wait()
 
-    def __test_task_send(self):
+
+    def test_task_send(self):
 
         def on_mngr_msg(body, queue, routing_key):
             pass
 
-        def on_node_msg(queue, channel, method, headers, body):
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+        def on_node_msg(body, queue, routing_key):
+            pass
             

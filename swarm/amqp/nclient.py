@@ -6,9 +6,9 @@ from tornado import gen
 
 import pika
 
-from swarm.common.amqp import AMQPClient
+from swarm.amqp.base import AMQPClient
 from swarm.utils.log import log
-from swarm.common.entities.event import NodeOnlineEvent
+from swarm.events import NodeOnlineEvent
 
 
 class NodeAMQPClient(AMQPClient):

@@ -7,10 +7,11 @@ of RabbitMQ up and running
 from tornado.testing import AsyncTestCase
 from tornado.options import parse_config_file, options
 
-from swarm.common.config import define_common_options
+from swarm.config import define_common_options
 import os
 
 DIR = os.path.realpath(os.path.dirname(__file__))
+
 
 class BaseTestCase(AsyncTestCase):
     def setUp(self):

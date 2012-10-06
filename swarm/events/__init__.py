@@ -1,6 +1,6 @@
 
 
-from swarm.common.entity import Entity
+from swarm.entity import Entity
 
 
 class Event(Entity):

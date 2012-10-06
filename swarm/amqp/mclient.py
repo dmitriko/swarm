@@ -3,7 +3,7 @@
 from tornado.options import options
 from tornado import gen
 
-from swarm.common.amqp import AMQPClient
+from swarm.amqp.base import AMQPClient
 from swarm.utils.log import log
 
 
