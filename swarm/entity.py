@@ -6,6 +6,10 @@ import json
 from copy import copy
 
 
+class ValidationError(Exception): 
+    pass
+
+
 class MetaEntity(type):
     "Register every Entity class in registry"
 
@@ -24,6 +28,10 @@ class Entity(object):
         self.oid = oid or str(uuid.uuid1())
         self.created = created or time.time()
         self.updated = updated or time.time()
+        self.validate()
+
+    def validate(self):
+        pass
 
     def set(self, info=None,  **kw):
         if info:
@@ -33,6 +41,7 @@ class Entity(object):
         info.update(kw)
         for key, value in info.items():
             setattr(self, key, value)
+        self.validate()
         self.updated = time.time()
 
     def to_json(self):
