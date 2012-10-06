@@ -5,7 +5,6 @@ import socket
 from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado.options import options
 
-
 import pika
 from pika.adapters import BaseConnection
 from pika.adapters.select_connection import SelectConnection
@@ -42,30 +41,18 @@ class AMQPConnection(TornadoConnection):
                                 self.event_state)
         log.debug("adapter connecting to RabbitMQ %s %s" % (host, port))
         self._on_connected()
-
    
 
 class AMQPClient(object):
     "Connect to RabbitMQ and create a channel"
 
-    def __init__(self, oid=None, io_loop=None):
+    def __init__(self, on_msg_callback=None, oid=None, io_loop=None):
         self.oid = oid or options.oid
         self.io_loop = io_loop
+        self.on_msg_callback = on_msg_callback
         self.connection = None
         self.channel = None
         self.checker = PeriodicCallback(self._check_connection, 1000)
-
-
-    def _check_connection(self):
-        "Restablish connection to server if we lost it"
-        if self.connection:
-            try:
-                self.connection.socket.fileno()
-            except socket.error, exc:
-                log.debug("lost connection to RabbitMQ, %s" % str(exc))
-                self.checker.stop()
-                self.connection = None
-                self.connect()
 
     def connect(self):
         "Connect to RabbitMQ"
@@ -88,3 +75,27 @@ class AMQPClient(object):
         log.debug("%s is established" % channel)
         self.channel = channel
 
+    def _check_connection(self):
+        "Restablish connection to server if we lost it"
+        if self.connection:
+            try:
+                self.connection.socket.fileno()
+            except socket.error, exc:
+                log.debug("lost connection to RabbitMQ, %s" % str(exc))
+                self.checker.stop()
+                self.connection = None
+                self.connect()
+
+    def get_consumer_callback(self, queue_name):
+        "Return func to use in channel.basic_consume"
+        from functools import partial
+
+        def consumer_callback(queue_name, channel, method, headers, body):
+            "Ack message and call on_msg_callback if exists"
+            if self.on_msg_callback:
+                channel.basic_ack(delivery_tag=method.delivery_tag)
+                self.on_msg_callback(body, queue_name, method.routing_key)
+            else:
+                log.warn("No message callback set in %s" % self)
+            
+        return partial(consumer_callback, queue_name)
