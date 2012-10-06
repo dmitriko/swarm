@@ -6,8 +6,7 @@ from tornado.options import define
 
 def define_common_options():
 
-    define('log_file', default='', 
-       help = 'File path to log file')
+    define('log_file', default='',  help = 'File path to log file')
 
     define('config', help = 'File path to config file')
 
@@ -44,3 +43,5 @@ def define_common_options():
            help='Name for AMQP Queue for Manager listen Reports')
            
            
+def define_node_options():
+    define('oid', help='UUID of current node')
