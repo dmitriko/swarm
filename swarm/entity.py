@@ -10,6 +10,18 @@ class ValidationError(Exception):
     pass
 
 
+def json_encode(obj):
+    if isinstance(obj, Entity):
+        return obj.to_json()
+    return str(obj)
+
+
+def json_decode(obj):
+    if obj.has_key('cls'):
+        return Entity.from_dict(obj)
+    return obj
+
+
 class MetaEntity(type):
     "Register every Entity class in registry"
 
@@ -48,21 +60,25 @@ class Entity(object):
         "Return JSON object"
         info = copy(self.__dict__)
         info['cls'] = self.__class__.__name__
-        return json.dumps(info)
-
+        return json.dumps(info, default=json_encode)
 
     @classmethod
-    def from_json(cls, json_str):
-        "Return Entity instance for given json str"
-        import json
-        try:
-            info = dict((str(x), y) for x, y in json.loads(json_str).items())
-            cls_name = info['cls']
-        except (ValueError, KeyError): 
-            raise RuntimeError("JSON for enity is not valid %s %s" % json_str)
+    def from_dict(cls, info):
+        if not info.has_key('cls'):
+            raise RuntimeError("%s has not cls member" % info)
+        cls_name = info['cls']
         del info['cls']
         entity_class = MetaEntity.Registry.get(cls_name)
         if not entity_class:
             raise RuntimeError("%s is not valid class name" % cls_name)
+        info = dict((str(x), y) for x, y in info.items())
         return entity_class(**info)
-
+        
+    @classmethod
+    def from_json(cls, json_str):
+        "Return Entity instance for given json str"
+        try:
+            return json.loads(json_str, object_hook=json_decode)
+        except ValueError:
+            raise RuntimeError("JSON for enity is not valid %s %s" % json_str)
+#        return cls.from_dict(info)
