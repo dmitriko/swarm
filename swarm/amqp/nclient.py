@@ -1,5 +1,6 @@
 "AMQP client to communicate from Node to AMQP server"
 
+from Queue import Queue
 
 from tornado.options import options
 from tornado import gen
@@ -12,6 +13,10 @@ from swarm.events import NodeOnlineEvent
 
 
 class NodeAMQPClient(AMQPClient):
+    
+    def __init__(self, *args, **kw):
+        AMQPClient.__init__(self, *args, **kw)
+        self.events_to_send = Queue()
 
     @gen.engine
     def on_channel_created(self, channel):
@@ -33,9 +38,16 @@ class NodeAMQPClient(AMQPClient):
         self.channel.basic_consume(self.get_consumer_callback(self.rpc_queue),
                                    queue=self.rpc_queue)
 
-
     def publish_event(self, event):
-        
+        "Put event to queue and transfer control to main thread"
+        self.events_to_send.put(event)
+        self.io_loop.add_callback(self.process_events_queue)
+
+    def process_events_queue(self):
+        "Get Event from queue and publish it"
+ 
+        event = self.events_to_send.get()
+
         self.channel.basic_publish(
             body=event.to_json(),
             exchange=options.events_exchange,
