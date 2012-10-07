@@ -12,7 +12,7 @@ class ValidationError(Exception):
 
 def json_encode(obj):
     if isinstance(obj, Entity):
-        return obj.to_json()
+        return obj.to_dict()
     return str(obj)
 
 
@@ -36,11 +36,18 @@ class Entity(object):
 
     __metaclass__ = MetaEntity
 
-    def __init__(self, oid=None, created=None, updated=None):
-        self.oid = oid or str(uuid.uuid1())
-        self.created = created or time.time()
-        self.updated = updated or time.time()
-        self.validate()
+    def __init__(self, **kw):
+        self.oid = kw.get('oid', str(uuid.uuid1()))
+        self.created = kw.get('created', time.time())
+        self.updated = kw.get('updated', time.time())
+        self._validate()
+
+    def _validate(self):
+        try:
+            self.validate()
+        except Exception, exc:
+            raise ValidationError("got %s on %s" % (
+                    str(exc), self.__dict__))
 
     def validate(self):
         pass
@@ -53,14 +60,18 @@ class Entity(object):
         info.update(kw)
         for key, value in info.items():
             setattr(self, key, value)
-        self.validate()
+        self._validate()
         self.updated = time.time()
+
+    def to_dict(self):
+        "Return dict ready to send via wire as json"
+        info = copy(self.__dict__)
+        info['cls'] = self.__class__.__name__
+        return info
 
     def to_json(self):
         "Return JSON object"
-        info = copy(self.__dict__)
-        info['cls'] = self.__class__.__name__
-        return json.dumps(info, default=json_encode)
+        return json.dumps(self.to_dict(), default=json_encode)
 
     @classmethod
     def from_dict(cls, info):
@@ -72,7 +83,12 @@ class Entity(object):
         if not entity_class:
             raise RuntimeError("%s is not valid class name" % cls_name)
         info = dict((str(x), y) for x, y in info.items())
-        return entity_class(**info)
+        try:
+            return entity_class(**info)
+        except TypeError, exc:
+            raise RuntimeError(
+                "%s are not okay for %s.__init__, got %s error" % (
+                    info, entity_class, str(exc)))
         
     @classmethod
     def from_json(cls, json_str):
