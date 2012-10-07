@@ -3,6 +3,8 @@
 from tornado.options import options
 from tornado import gen
 
+import pika
+
 from swarm.amqp.base import AMQPClient
 from swarm.utils.log import log
 
@@ -37,3 +39,10 @@ class ManagerAMQPClient(AMQPClient):
             no_ack=False)
         
 
+    def send_task(self, task):
+        "Put task msg to rpc exchange"
+        self.channel.basic_publish(body=task.to_json(),
+                             exchange=options.rpc_exchange,
+                             routing_key=task.performer,
+                             properties=pika.BasicProperties(
+                content_type='application/json'))

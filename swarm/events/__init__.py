@@ -10,15 +10,34 @@ class Event(Entity):
         Entity.__init__(self, **kw)
     
 
-class NodeOnlineEvent(Event):
-    def __init__(self, reporter, node_oid=None, **kw):
-        """reporter is a node oid
-        comm_queue is AMPQ queue name for RPC
+class NodeEvent(Event):
+    def __init__(self, reporter, **kw):
+        "Raised when node went online"
 
-        """
+        if 'node_oid' in kw:
+            self.node_oid = kw.pop('node_oid')
+        else:
+            self.node_oid = reporter
+
         Event.__init__(self, reporter, **kw)
-        self.node_oid = node_oid or reporter
 
 
-class NodeOffline(NodeOnlineEvent):
-    pass
+class NodeOnlineEvent(NodeEvent): pass
+
+
+class NodeOffline(NodeEvent): pass
+
+
+class TaskEvent(NodeEvent):
+    def __init__(self, reporter, task, **kw):
+        self.reporter = reporter
+        self.task = task
+
+
+class TaskUpdated(TaskEvent): pass
+
+
+class TaskFailed(TaskEvent): pass
+
+
+class TaskSuccess(TaskEvent): pass
