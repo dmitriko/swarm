@@ -15,6 +15,7 @@ import pika
 from swarm.config import define_common_options
 from swarm.amqp.nclient import NodeAMQPClient
 from swarm.amqp.mclient import ManagerAMQPClient
+from swarm.entity import Entity
 
 
 DIR = os.path.realpath(os.path.dirname(__file__))
@@ -63,14 +64,21 @@ class AMQPCase(BaseTestCase):
 
         BaseTestCase.tearDown(self)
 
-    def set_manager(self, msg_callback):
-        self.manager = ManagerAMQPClient(msg_callback, self.manager_oid, self.io_loop)        
+    def set_manager(self, *args, **kw):
+        kw['oid'] = self.manager_oid
+        kw['io_loop']  = self.io_loop
+        self.manager = ManagerAMQPClient(*args, **kw)
         self.manager.connect()
 
-    def set_node(self, msg_callback):
-        self.node = NodeAMQPClient(msg_callback, self.node_oid, self.io_loop)
+    def set_node(self, *args, **kw):
+        kw['oid'] = self.node_oid
+        kw['io_loop']  = self.io_loop
+        self.node = NodeAMQPClient(*args, **kw)
         self.node.connect()
-        
+
+    def entity_from_json(self, json_str):
+        "Return Entity instance for given json str"
+        return Entity.from_json(json_str)
 
         
 
