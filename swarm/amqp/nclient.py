@@ -17,6 +17,7 @@ class NodeAMQPClient(AMQPClient):
     def __init__(self, *args, **kw):
         AMQPClient.__init__(self, *args, **kw)
         self.events_to_send = Queue()
+        self.reports_to_send = Queue()
 
     @gen.engine
     def on_channel_created(self, channel):
@@ -38,6 +39,16 @@ class NodeAMQPClient(AMQPClient):
         self.channel.basic_consume(self.get_consumer_callback(self.rpc_queue),
                                    queue=self.rpc_queue)
 
+    def publish_report(self, report):
+        "Put report to queue and transfer control to main thread"
+        self.reports_to_send.put(report)
+        self.io_loop.add_callback(self.process_reports_queue)
+
+    def process_reports_queue(self):
+        "Get Report from Queue (not AMQP one) and publish it"
+        report = self.reports_to_send.get()
+        self.publish_entity(report, options.reports_exchange)
+
     def publish_event(self, event):
         "Put event to queue and transfer control to main thread"
         self.events_to_send.put(event)
@@ -45,15 +56,16 @@ class NodeAMQPClient(AMQPClient):
 
     def process_events_queue(self):
         "Get Event from queue and publish it"
- 
         event = self.events_to_send.get()
-
+        self.publish_entity(event, options.events_exchange)
+    
+    def publish_entity(self, entity, exchange):
         self.channel.basic_publish(
-            body=event.to_json(),
-            exchange=options.events_exchange,
+            body=entity.to_json(),
+            exchange=exchange,
             properties=pika.BasicProperties(
                 content_type="application/json",
                 delivery_mode=1),
-            routing_key="%s.%s" % (self.oid, event.__class__.__name__))
+            routing_key="%s.%s" % (self.oid, entity.__class__.__name__))
 
-        log.debug("Event %s is published" % (event.to_json()))
+        log.debug("%s is published" % (entity.to_json()))

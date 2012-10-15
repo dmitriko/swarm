@@ -7,6 +7,7 @@ from swarm.utils.log import log
 
 
 class TaskThreadWorker(Thread):
+    "There where task is performed"
     def __init__(self, amqp_client, task):
         self.task = task
         self.amqp_client = amqp_client
