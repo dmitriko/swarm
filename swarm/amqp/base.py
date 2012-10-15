@@ -46,12 +46,14 @@ class AMQPConnection(TornadoConnection):
 class AMQPClient(object):
     "Connect to RabbitMQ and create a channel"
 
-    def __init__(self, on_msg_callback=None, oid=None, io_loop=None):
+    def __init__(self, on_msg_callback=None, oid=None, io_loop=None,
+                 on_channel_created=None):
         self.oid = oid or options.oid
         self.io_loop = io_loop
         self.on_msg_callback = on_msg_callback
         self.connection = None
         self.channel = None
+        self._on_channel_created = on_channel_created
         self.checker = PeriodicCallback(self._check_connection, 1000)
 
     def connect(self):
@@ -74,6 +76,8 @@ class AMQPClient(object):
         "Implement in subclasses"
         log.debug("%s is established" % channel)
         self.channel = channel
+        if self._on_channel_created:
+            self._on_channel_created(channel)
 
     def _check_connection(self):
         "Restablish connection to server if we lost it"
