@@ -48,8 +48,12 @@ class AMQPCase(BaseTestCase):
         channel.exchange_declare(exchange=options.events_exchange, type='topic')
         channel.exchange_declare(exchange=options.reports_exchange, type='topic')
         channel.queue_declare(queue=options.events_queue)
+        channel.queue_declare(queue=options.reports_queue)
         channel.queue_bind(queue=options.events_queue, exchange=options.events_exchange,
                            routing_key='#')
+        channel.queue_bind(queue=options.reports_queue, exchange=options.reports_exchange,
+                           routing_key='#')
+
 
     def tearDown(self):
         parameters = pika.ConnectionParameters('localhost')
@@ -61,6 +65,7 @@ class AMQPCase(BaseTestCase):
         channel.exchange_delete(exchange=options.events_exchange)
         channel.exchange_delete(exchange=options.reports_exchange)
         channel.queue_delete(queue=options.events_queue)
+        channel.queue_delete(queue=options.reports_queue)
 
         BaseTestCase.tearDown(self)
 
