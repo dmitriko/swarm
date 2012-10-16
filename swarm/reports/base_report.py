@@ -10,7 +10,13 @@ class BaseReport(Event):
 
 class SubprocessReport(BaseReport):
     "Use popen to collect raw data"
-    def _cmd(self):
-        "Return list of string for usring in subprocess call"
-        raise NonImplementedError
-    cmd = property(_cmd)
+
+    cmd  = [] # parameters for subprocess
+
+    def __init__(self, *args, **kw):
+        BaseReport.__init__(self, *args, **kw)
+        if not isinstance(self.cmd, list):
+            raise RuntimeError(
+                "cls.cmd is not set or not a list")
+
+

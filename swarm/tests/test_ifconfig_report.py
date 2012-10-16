@@ -1,5 +1,6 @@
 from .base import AMQPCase
 from swarm.reports.sproc_report import IFConfigReport
+from swarm.reports.subprocess_manager import SubprocessManager
 
 
 RAW_DATA = """eth0      Link encap:Ethernet  HWaddr 34:40:B5:E1:96:88  
@@ -71,19 +72,37 @@ vnet1     Link encap:Ethernet  HWaddr FE:54:00:FE:49:DF
 
 
 class IFConfigReportCase(AMQPCase):
-    def test_publish_ifconfig_report(self):
+
+    def test_sprocess_manager(self):
 
         def on_mngr_msg(client, body, queue, routing_key):
             inst = self.entity_from_json(body)
             if isinstance(inst, IFConfigReport):
                 self.stop()
+            if inst.__class__.__name__ == 'NodeOnlineEvent':
+                smanager = SubprocessManager(self.node)
+                smanager.add_report(IFConfigReport, 15)
+                smanager.start()
+
+        self.set_manager(on_mngr_msg)
+        self.set_node()
+
+        self.wait()
+            
+
+    def test_publish_ifconfig_report(self):
+
+        def on_mngr_msg(client, body, queue, routing_key):
+            inst = self.entity_from_json(body)
+            if isinstance(inst, IFConfigReport):
+                self.assertEqual(inst.raw_data, RAW_DATA)
+                self.stop()
 
         def on_node_init(channel):
             self.node.publish_report(
-                IFConfigReport(self.node_oid, 'dummy data'))
+                IFConfigReport(self.node_oid, RAW_DATA))
 
         self.set_manager(on_mngr_msg)
         self.set_node(on_channel_created=on_node_init)
 
         self.wait()
-        

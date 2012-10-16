@@ -32,3 +32,10 @@ class TaskFailed(TaskEvent): pass
 
 
 class TaskSuccess(TaskEvent): pass
+
+
+class ReportCollectFailed(NodeEvent):
+    def __init__(self, reporter, report, error, **kw):
+        NodeEvent.__init__(self, reporter, **kw)
+        self.report = report
+        self.error = error
