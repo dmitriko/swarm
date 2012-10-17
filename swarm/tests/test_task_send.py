@@ -14,7 +14,7 @@ class TaskSendCase(AMQPCase):
 
         self.mngr_msg_count = 0
 
-        def on_mngr_msg(client, body, queue, routing_key):
+        def on_mngr_msg(client, body, routing_key):
 
             self.mngr_msg_count += 1
 
@@ -39,7 +39,7 @@ class TaskSendCase(AMQPCase):
                 self.assertEqual(event.task.status, 'success')
                 self.stop()
 
-        def on_node_msg(client, body, queue, routing_key):
+        def on_node_msg(client, body, routing_key):
             task = Entity.from_json(body)
             self.assertEqual(task.performer, self.node_oid)
             worker = TaskThreadWorker(client, task)

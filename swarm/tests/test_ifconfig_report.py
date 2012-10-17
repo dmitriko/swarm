@@ -75,7 +75,7 @@ class IFConfigReportCase(AMQPCase):
 
     def test_sprocess_manager(self):
 
-        def on_mngr_msg(client, body, queue, routing_key):
+        def on_mngr_msg(client, body, routing_key):
             inst = self.entity_from_json(body)
             if isinstance(inst, IFConfigReport):
                 self.stop()
@@ -92,7 +92,7 @@ class IFConfigReportCase(AMQPCase):
 
     def test_publish_ifconfig_report(self):
 
-        def on_mngr_msg(client, body, queue, routing_key):
+        def on_mngr_msg(client, body, routing_key):
             inst = self.entity_from_json(body)
             if isinstance(inst, IFConfigReport):
                 self.assertEqual(inst.raw_data, RAW_DATA)

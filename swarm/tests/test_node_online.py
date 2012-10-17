@@ -7,7 +7,7 @@ class NodeManagerCommCase(AMQPCase):
 
     def test_node_online_event(self):
 
-        def on_mngr_msg(client, body, queue, routing_key):
+        def on_mngr_msg(client, body, routing_key):
             event = Entity.from_json(body)
             self.assertEqual(event.__class__.__name__,
                              'NodeOnlineEvent')
