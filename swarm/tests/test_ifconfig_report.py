@@ -99,7 +99,7 @@ class IFConfigReportCase(AMQPCase):
                 self.stop()
 
         def on_node_init(channel):
-            self.node.publish_report(
+            self.node.publish_event(
                 IFConfigReport(self.node_oid, RAW_DATA))
 
         self.set_manager(on_mngr_msg)

@@ -17,7 +17,6 @@ class NodeAMQPClient(AMQPClient):
     def __init__(self, *args, **kw):
         AMQPClient.__init__(self, *args, **kw)
         self.events_to_send = Queue()
-        self.reports_to_send = Queue()
 
     @gen.engine
     def on_channel_created(self, channel):
@@ -39,16 +38,6 @@ class NodeAMQPClient(AMQPClient):
         self.channel.basic_consume(self.get_consumer_callback(self.rpc_queue),
                                    queue=self.rpc_queue)
 
-    def publish_report(self, report):
-        "Put report to queue and transfer control to main thread"
-        self.reports_to_send.put(report)
-        self.io_loop.add_callback(self.process_reports_queue)
-
-    def process_reports_queue(self):
-        "Get Report from Queue (not AMQP one) and publish it"
-        report = self.reports_to_send.get()
-        self.publish_entity(report, options.reports_exchange)
-
     def publish_event(self, event):
         "Put event to queue and transfer control to main thread"
         self.events_to_send.put(event)
@@ -58,7 +47,8 @@ class NodeAMQPClient(AMQPClient):
         "Get Event from queue and publish it"
         event = self.events_to_send.get()
         self.publish_entity(event, options.events_exchange)
-    
+
+
     def publish_entity(self, entity, exchange):
         self.channel.basic_publish(
             body=entity.to_json(),

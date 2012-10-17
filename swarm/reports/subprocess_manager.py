@@ -27,7 +27,7 @@ class SubprocessManager(object):
     def report_done(self, report_class, data):
         log.debug("data collected for %s" % report_class)
         report = report_class(self.client.oid, data)
-        self.client.publish_report(report)
+        self.client.publish_event(report)
 
     def report_failed(self, report_class, err_data):
         from swarm.events import ReportCollectFailed

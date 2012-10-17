@@ -98,7 +98,8 @@ class AMQPClient(object):
             "Ack message and call on_msg_callback if exists"
             if self.on_msg_callback:
                 channel.basic_ack(delivery_tag=method.delivery_tag)
-                self.on_msg_callback(self, body, queue_name, method.routing_key)
+                self.on_msg_callback(
+                    self, body, queue_name, method.routing_key)
             else:
                 log.warn("No message callback set in %s" % self)
             

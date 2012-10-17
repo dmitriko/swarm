@@ -20,21 +20,13 @@ class ManagerAMQPClient(AMQPClient):
                        exchange=options.rpc_exchange, type='topic')
         yield gen.Task(channel.exchange_declare,
                        exchange=options.events_exchange, type='topic')
-        yield gen.Task(channel.exchange_declare,
-                       exchange=options.reports_exchange, type='topic')
         yield gen.Task(channel.queue_declare, queue=options.events_queue)
-        yield gen.Task(channel.queue_declare, queue=options.reports_queue)
 
         log.debug("Exchanges for Manager are declared")
 
         yield gen.Task(channel.queue_bind,
                        queue=options.events_queue, 
                        exchange=options.events_exchange,
-                       routing_key='#')
-
-        yield gen.Task(channel.queue_bind,
-                       queue=options.reports_queue,
-                       exchange=options.reports_exchange,
                        routing_key='#')
 
         log.debug("events queue %s is bound" % options.events_queue)
@@ -44,11 +36,6 @@ class ManagerAMQPClient(AMQPClient):
             queue=options.events_queue,
             no_ack=False)
 
-        self.channel.basic_consume(
-            consumer_callback=self.get_consumer_callback(options.reports_queue),
-            queue=options.reports_queue,
-            no_ack=False)
-        
 
     def send_task(self, task):
         "Put task msg to rpc exchange"
