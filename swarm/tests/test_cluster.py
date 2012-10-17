@@ -30,4 +30,4 @@ class ClusterCase(BaseTestCase):
         self.assertEqual(cluster.entities_by_class(Baz)[0],
                          item3)
         cluster.delete(item1)
-        self.assertEqual(len(cluster.ids_by_class(Item)), 1)
+        self.assertEqual(len(cluster.oids_by_class(Item)), 1)

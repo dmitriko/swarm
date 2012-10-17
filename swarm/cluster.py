@@ -17,8 +17,8 @@ class Cluster(object):
     def get(self, oid, default=None):
         return self._data.get(oid, default)
 
-    def ids_by_class(self, class_):
-        "Return list of stored ids for entites of given class"
+    def oids_by_class(self, class_):
+        "Return list of stored oids for entites of given class"
 
         if isinstance(class_, basestring):
             class_name = class_
@@ -29,7 +29,7 @@ class Cluster(object):
         return list(self._entities[class_name])
 
     def entities_by_class(self, class_):
-        return [self._data.get(x) for x in self.ids_by_class(class_)]
+        return [self._data.get(x) for x in self.oids_by_class(class_)]
 
     def store(self, entity):
         "Persist entity"
