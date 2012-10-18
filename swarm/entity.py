@@ -36,6 +36,8 @@ class Entity(object):
 
     __metaclass__ = MetaEntity
 
+    ValidationError = ValidationError
+
     def __init__(self, **kw):
         self.oid = kw.get('oid', str(uuid.uuid1()))
         self.created = kw.get('created', time.time())
@@ -62,6 +64,12 @@ class Entity(object):
             setattr(self, key, value)
         self._validate()
         self.updated = time.time()
+
+    def __str__(self):
+        return "<%s %s>" % (self.__class__.__name__, self.oid)
+
+    def __repr__(self):
+        return self.__str__()
 
     def to_dict(self):
         "Return dict ready to send via wire as json"
