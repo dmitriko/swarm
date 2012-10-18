@@ -19,4 +19,7 @@ class SubprocessReport(BaseReport):
             raise RuntimeError(
                 "cls.cmd is not set or not a list")
 
-
+    def parsed_data(self):
+        "Return dict with parsed items"
+        raise NotImplementedError
+    
