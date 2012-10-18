@@ -6,7 +6,7 @@ from swarm.events.base_event import Event
 from swarm.reports import IFConfigReport
 from swarm.events import NodeOnlineEvent
 from swarm.cluster import Cluster
-from swarm.stuff import Node
+from swarm.stuff import Node, HostNic
 
 
 def on_mngr_msg(client, body, routing_key):
@@ -29,5 +29,12 @@ def on_node_online(event):
 
 
 def on_ifconfig(report):
-    pass
+    cluster = Cluster.instance()
+    node = cluster.get(report.node_oid)
+    for name, info in report.parsed_data().items():
+        mac = info.get('mac')
+        if not mac:
+            continue # lo 
+        oid = cluster.mac2oid(mac)
+        node.add_host_nic(HostNic(node, name, oid=oid, **info))
 
