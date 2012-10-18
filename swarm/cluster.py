@@ -1,6 +1,7 @@
 "Cluster instance represent state of the system"
 
 import threading
+import uuid
 from collections import defaultdict
 
 from swarm.entity import Entity
@@ -13,7 +14,8 @@ class Cluster(object):
     def __init__(self):
         self._data = {}
         self._entities = defaultdict(set)
-    
+        self._mac2oid = {}
+
     def get(self, oid, default=None):
         return self._data.get(oid, default)
 
@@ -53,3 +55,9 @@ class Cluster(object):
                 if not hasattr(Cluster, "_instance"):
                     Cluster._instance = Cluster()
         return Cluster._instance
+
+    def mac2oid(self, mac):
+        "Return stored or generated oid for mac address"
+        if mac not in self._mac2oid:
+            self._mac2oid[mac] = str(uuid.uuid1())
+        return self._mac2oid[mac]
