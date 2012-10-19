@@ -8,10 +8,16 @@ class Node(Entity):
         self.host_nics = kw.get('host_nics', {})
         Entity.__init__(self, **kw)
 
-    def add_host_nic(self, nic):
+    def update_host_nic(self, nic):
         assert isinstance(nic, HostNic)
+        cluster = Cluster.instance()
         self.host_nics[nic.name] = nic.oid
-        Cluster.instance().store(nic)
+        existed_nic = cluster.get(nic.oid)
+        if existed_nic:
+            existed_nic.set(nic.to_dict())
+            cluster.store(existed_nic)
+        else:
+            cluster.store(nic)
 
     def get_host_nic(self, nic_name):
         cluster = Cluster.instance()
@@ -22,8 +28,7 @@ class Node(Entity):
                 raise KeyError(nic_name)
             return nic
         except KeyError:
-            raise RuntimeError("No NIC with name %s in %s" % (
-                    nic_name, self))
+            return None
 
 
 class HostNic(Entity):
