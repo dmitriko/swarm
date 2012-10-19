@@ -7,6 +7,7 @@ class IFConfigReport(SubprocessReport):
     "Result of /sbin/ifconfig"
     cmd = ['/sbin/ifconfig']
 
+    @property
     def parsed_data(self):
         result = {}
         if not  self.raw_data:
@@ -39,6 +40,37 @@ class IFConfigReport(SubprocessReport):
             result[name] = nic
 
         return result
+
+
+class BrctlShowReport(SubprocessReport):
+    "Result of brctl show"
+    cmd = ['brctl', 'show']
+
+    @property
+    def parsed_data(self):
+        """Return dict where keys are bridge name,
+        values is a lists with names of nics in this bridge
+
+        """
+        if not self.raw_data:
+            return {}
+        result = {}
+        bridge_name = None
+        nics = None
+        for line in self.raw_data.split('\n'):
+            if line.startswith('bridge name'):
+                continue
+            match = re.search(r'^(\S+)', line)
+            if match:
+                nics = []
+                result[match.group(1)] = nics
+            match = re.search(r'(\S+)$', line)
+            if match:
+                if nics is None:
+                    raise RuntimeError("Could not parse %s" % self.raw_data)
+                nics.append(match.group(1))
+        return result
+
 
 class DFReport(SubprocessReport):
     "Result of df -h from Node"

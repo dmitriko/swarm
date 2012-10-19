@@ -3,7 +3,7 @@
 
 from swarm.entity import Entity
 from swarm.events.base_event import Event
-from swarm.reports import IFConfigReport
+from swarm.reports import IFConfigReport, BrctlShowReport
 from swarm.events import NodeOnlineEvent
 from swarm.cluster import Cluster
 from swarm.stuff import Node, HostNic
@@ -20,6 +20,8 @@ def on_event(event):
         return on_node_online(event)
     if isinstance(event, IFConfigReport):
         return on_ifconfig(event)
+    if isinstance(event, BrctlShowReport):
+        return on_brctl_show(event)
 
 
 def on_node_online(event):
@@ -28,13 +30,28 @@ def on_node_online(event):
     cluster.store(node)
 
 
+def on_brctl_show(report):
+    cluster = Cluster.instance()
+    node = cluster.get(report.node_oid)
+    if not node:
+        raise RuntimeError("Got report %s for non existed node" % report.__dict__)
+
+    for bridge_name, nic_names in report.parsed_data.items():
+        for nic_name in nic_names:
+            nic = node.get_host_nic(nic_name)
+            if nic:
+                # if not - didn't get ifconfig report yet, nothing we can do
+                nic.bridge = bridge_name
+                node.update_host_nic(nic)
+
+
 def on_ifconfig(report):
     cluster = Cluster.instance()
     node = cluster.get(report.node_oid)
-    for name, info in report.parsed_data().items():
+    for name, info in report.parsed_data.items():
         mac = info.get('mac')
         if not mac:
             continue # lo 
         oid = cluster.mac2oid(mac)
-        node.add_host_nic(HostNic(node, name, oid=oid, **info))
+        node.update_host_nic(HostNic(node, name, oid=oid, **info))
 
