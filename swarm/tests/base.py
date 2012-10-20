@@ -6,16 +6,18 @@ of RabbitMQ up and running
 
 import os
 import uuid
+import shutil
 
 from tornado.testing import AsyncTestCase
 from tornado.options import parse_config_file, options
 
 import pika
 
-from swarm.config import define_common_options
+from swarm.config import define_common_options, define_node_options
 from swarm.amqp.nclient import NodeAMQPClient
 from swarm.amqp.mclient import ManagerAMQPClient
 from swarm.entity import Entity
+from swarm.stuff import Storage
 
 
 DIR = os.path.realpath(os.path.dirname(__file__))
@@ -25,12 +27,25 @@ class BaseTestCase(AsyncTestCase):
     def setUp(self):
         AsyncTestCase.setUp(self)
         define_common_options()
+        define_node_options()
         parse_config_file(os.path.join(DIR, 'config_data.py'))
+        self.init_storages()
+
+
+    def init_storages(self):
+        self.storage1_path = '/tmp/storage1'
+        self.storage2_path = '/tmp/storage2'
+        self.storage1_oid = Storage.ensure(self.storage1_path)
+        self.storage2_oid = Storage.ensure(self.storage2_path)
 
     def tearDown(self):
         for key in options.keys():
             del options[key]
-
+        try:
+            shutil.rmtree(self.storage1_path)
+            shutil.rmtree(self.storage2_path)
+        except:
+            pass
 
 class AMQPCase(BaseTestCase):
     "Test AMQP messaging"
@@ -52,7 +67,7 @@ class AMQPCase(BaseTestCase):
         channel.queue_bind(queue=options.events_queue, 
                            exchange=options.events_exchange,
                            routing_key='#')
-
+        
     def tearDown(self):
         parameters = pika.ConnectionParameters('localhost')
         connection = pika.BlockingConnection(parameters)
@@ -65,7 +80,7 @@ class AMQPCase(BaseTestCase):
         channel.queue_delete(queue=options.events_queue)
 
         BaseTestCase.tearDown(self)
-
+        
     def set_manager(self, *args, **kw):
         kw['oid'] = self.manager_oid
         kw['io_loop']  = self.io_loop

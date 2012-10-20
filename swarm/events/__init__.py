@@ -1,5 +1,6 @@
 from .base_event import Event
 
+
 class NodeEvent(Event):
 
     def __init__(self, reporter, **kw):
@@ -13,8 +14,15 @@ class NodeEvent(Event):
         Event.__init__(self, reporter, **kw)
 
 
-class NodeOnlineEvent(NodeEvent): pass
+class NodeOnlineEvent(NodeEvent):
+    def __init__(self, reporter, storages=None, **kw):
+        NodeEvent.__init__(self, reporter)
+        self.storages = storages or []
 
+    def to_dict(self):
+        info = NodeEvent.to_dict(self)
+        info['storages'] = [x.to_dict() for x in info['storages']]
+        return info
 
 class NodeOffline(NodeEvent): pass
 

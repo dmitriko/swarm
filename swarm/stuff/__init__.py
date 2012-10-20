@@ -1,3 +1,5 @@
+from tornado.options import options
+
 from swarm.entity import Entity
 from swarm.cluster import Cluster
 
@@ -43,3 +45,51 @@ class HostNic(Entity):
         self.rx_bytes = kw.get('rx_bytes')
         self.tx_bytes = kw.get('rx_bytes')
         self.bridge = kw.get('bridge')
+
+
+class MountPoint(Entity):
+    "Store host-storage relation"
+    def __init__(self, node_oid, storage_oid, path, **kw):
+        Entity.__init__(self, **kw)
+        self.node_oid = node_oid
+        self.storage_oid = storage_oid
+        self.path = path
+
+
+class Storage(Entity):
+    def get_mount_points(self):
+        "Return list of mount points for this storage"
+        cluster = Cluster.instance()
+        return [x for x in cluster.entities_by_class(
+                MountPoint) if x.storage_oid == self.oid]
+    
+    @classmethod
+    def ensure(self, path, oid=None):
+        """Create a dir in at file path, 
+        generate uuid and store it in file, return storage oid
+
+        """
+
+        import uuid
+        import os
+        sys_dir = os.path.join(path, '.vgd')
+        if not os.path.exists(sys_dir):
+            os.makedirs(sys_dir)
+        oid_file_path = os.path.join(sys_dir, 'oid')
+        if os.path.exists(oid_file_path):
+            return open(oid_file_path).read().strip()
+        oid = oid or str(uuid.uuid1())
+        open(os.path.join(sys_dir, 'oid'), 'w').write(oid)
+        return oid
+
+    @classmethod
+    def get_node_mountpoints(cls, client):
+        "Return list of MountPoints for given config settings"
+        if not options.storages:
+            return []
+        result = []
+        for path in options.storages.split(','):
+            result.append(MountPoint(node_oid=client.oid,
+                                     storage_oid=cls.ensure(path),
+                                     path=path))
+        return result

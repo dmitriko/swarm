@@ -45,3 +45,4 @@ def define_common_options():
            
 def define_node_options():
     define('oid', help='UUID of current node')
+    define('storages', help='Comma separated list of paths to storages')

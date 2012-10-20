@@ -14,6 +14,12 @@ class NodeManagerCommCase(AMQPCase):
             default_mngr_callback(client, body, routing_key)
             event = Entity.from_json(body)
             if isinstance(event, NodeOnlineEvent):
+                print event.to_dict()
+                self.assertEqual(len(event.storages), 2)
+                for mount_point in event.storages:
+                    if mount_point.storage_oid == self.storage1_oid:
+                        self.assertEqual(mount_point.path, 
+                                         self.storage1_path)
                 self.stop()
 
         self.set_manager(on_mngr_msg)

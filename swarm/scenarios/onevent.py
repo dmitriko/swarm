@@ -6,13 +6,19 @@ from swarm.events.base_event import Event
 from swarm.reports import IFConfigReport, BrctlShowReport
 from swarm.events import NodeOnlineEvent
 from swarm.cluster import Cluster
-from swarm.stuff import Node, HostNic
+from swarm.stuff import Node, HostNic, Storage
 
 
 def on_mngr_msg(client, body, routing_key):
     entity = Entity.from_json(body)
     if isinstance(entity, Event):
         return on_event(entity)
+
+
+def on_node_started(client):
+    event = NodeOnlineEvent(client.oid)
+    event.storages = Storage.get_node_mountpoints(client)
+    client.publish_event(event)
 
 
 def on_event(event):

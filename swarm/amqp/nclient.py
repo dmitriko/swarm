@@ -9,7 +9,7 @@ import pika
 
 from swarm.amqp.base import AMQPClient
 from swarm.utils.log import log
-from swarm.events import NodeOnlineEvent
+from swarm.scenarios.onevent import on_node_started
 
 
 class NodeAMQPClient(AMQPClient):
@@ -33,10 +33,9 @@ class NodeAMQPClient(AMQPClient):
         log.debug("rpc_queue %s for node %s is created" % (
                 self.rpc_queue, self.oid))
 
-        self.publish_event(NodeOnlineEvent(self.oid))
-
         self.channel.basic_consume(self.get_consumer_callback(self.rpc_queue),
                                    queue=self.rpc_queue)
+        on_node_started(self)
 
     def publish_event(self, event):
         "Put event to queue and transfer control to main thread"
