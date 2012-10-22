@@ -8,6 +8,7 @@ class Node(Entity):
     "Host for hypervisor"
     def __init__(self, **kw):
         self.host_nics = kw.get('host_nics', {})
+        self.storages = kw.get('storages', [])
         Entity.__init__(self, **kw)
 
     def update_host_nic(self, name, **kw):
@@ -31,6 +32,19 @@ class Node(Entity):
             return None
 
 
+    @classmethod
+    def get_storage_points(cls, client):
+        "Return list of StoragePoints for given config settings"
+        if not options.storages:
+            return []
+        result = []
+        for path in options.storages.split(','):
+            result.append(StoragePoint(node_oid=client.oid,
+                                       storage_oid=Storage.ensure(path),
+                                       path=path))
+        return result
+
+
 class HostNic(Entity):
     "Host network interface"
     def __init__(self, host, name, **kw):
@@ -46,8 +60,8 @@ class HostNic(Entity):
         self.bridge_for = kw.get('bridge_for', [])
 
 
-class MountPoint(Entity):
-    "Store host-storage relation"
+class StoragePoint(Entity):
+    "Store host-storage relation, could be mount or just regular dir"
     def __init__(self, node_oid, storage_oid, path, **kw):
         Entity.__init__(self, **kw)
         self.node_oid = node_oid
@@ -60,7 +74,7 @@ class Storage(Entity):
         "Return list of mount points for this storage"
         cluster = Cluster.instance()
         return [x for x in cluster.entities_by_class(
-                MountPoint) if x.storage_oid == self.oid]
+                StoragePoint) if x.storage_oid == self.oid]
     
     @classmethod
     def ensure(self, path, oid=None):
@@ -80,18 +94,6 @@ class Storage(Entity):
         oid = oid or str(uuid.uuid1())
         open(os.path.join(sys_dir, 'oid'), 'w').write(oid)
         return oid
-
-    @classmethod
-    def get_node_mountpoints(cls, client):
-        "Return list of MountPoints for given config settings"
-        if not options.storages:
-            return []
-        result = []
-        for path in options.storages.split(','):
-            result.append(MountPoint(node_oid=client.oid,
-                                     storage_oid=cls.ensure(path),
-                                     path=path))
-        return result
 
 
 class Network(Entity):

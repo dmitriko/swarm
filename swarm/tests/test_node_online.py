@@ -4,6 +4,7 @@ from swarm.cluster import Cluster
 from swarm.events import NodeOnlineEvent
 from swarm.stuff import Node
 
+
 from .base import AMQPCase
 
 
@@ -14,9 +15,9 @@ class NodeManagerCommCase(AMQPCase):
             default_mngr_callback(client, body, routing_key)
             event = Entity.from_json(body)
             if isinstance(event, NodeOnlineEvent):
-                print event.to_dict()
-                self.assertEqual(len(event.storages), 2)
-                for mount_point in event.storages:
+                node = Cluster.instance().get(self.node_oid)
+                self.assertEqual(len(node.storages), 2)
+                for mount_point in node.storages:
                     if mount_point.storage_oid == self.storage1_oid:
                         self.assertEqual(mount_point.path, 
                                          self.storage1_path)

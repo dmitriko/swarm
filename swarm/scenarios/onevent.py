@@ -16,8 +16,9 @@ def on_mngr_msg(client, body, routing_key):
 
 
 def on_node_started(client):
+    "Use it only in node context"
     event = NodeOnlineEvent(client.oid)
-    event.storages = Storage.get_node_mountpoints(client)
+    event.storages = Node.get_storage_points(client)
     client.publish_event(event)
 
 
@@ -32,7 +33,7 @@ def on_event(event):
 
 def on_node_online(event):
     cluster = Cluster.instance()
-    node = Node(oid=event.node_oid)
+    node = Node(oid=event.node_oid, storages=event.storages)
     cluster.store(node)
 
 
