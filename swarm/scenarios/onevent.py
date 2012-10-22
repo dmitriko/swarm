@@ -50,16 +50,19 @@ def on_brctl_show(report):
                 nic.in_bridge = bridge_name
                 node.update_host_nic(nic)
         bridge = node.get_host_nic(bridge_name)
-        bridge.bridge_for = nic_names
-        node.update_host_nic(bridge)
+        if bridge:
+            bridge.bridge_for = nic_names
+            node.update_host_nic(bridge)
+
 
 def on_ifconfig(report):
     cluster = Cluster.instance()
     node = cluster.get(report.node_oid)
+    if not node:
+        raise RuntimeError("Cluster has no Node %s" % report.node_oid)
     for name, info in report.parsed_data.items():
         mac = info.get('mac')
         if not mac:
             continue # lo 
-        oid = cluster.mac2oid(mac)
-        node.update_host_nic(HostNic(node, name, oid=oid, **info))
+        node.update_host_nic(name, **info)
 

@@ -10,16 +10,14 @@ class Node(Entity):
         self.host_nics = kw.get('host_nics', {})
         Entity.__init__(self, **kw)
 
-    def update_host_nic(self, nic):
-        assert isinstance(nic, HostNic)
-        cluster = Cluster.instance()
-        self.host_nics[nic.name] = nic.oid
-        existed_nic = cluster.get(nic.oid)
-        if existed_nic:
-            existed_nic.set(nic.to_dict())
-            cluster.store(existed_nic)
+    def update_host_nic(self, name, **kw):
+        nic = self.get_host_nic(name)
+        if nic:
+            nic.set(**kw)
         else:
-            cluster.store(nic)
+            nic = HostNic(self, name, **kw)
+            self.host_nics[name] = nic.oid
+            Cluster.instance().store(nic)
 
     def get_host_nic(self, nic_name):
         cluster = Cluster.instance()
@@ -94,3 +92,33 @@ class Storage(Entity):
                                      storage_oid=cls.ensure(path),
                                      path=path))
         return result
+
+
+class Network(Entity):
+    "Represent virtual network in system"
+    def __init__(self, title, host_nics=None, **kw):
+        self.title = title
+        if host_nics:
+            self.host_nics = set(host_nics)
+        else:
+            self.host_nics = set()
+        Entity.__init__(self, **kw)
+    
+    def add_host_nic(self, nic):
+        assert isinstance(nic, HostNic)
+        if not nic.bridge_for and nic.in_bridge:
+            nic = nic.in_bridge
+        self.host_nics.add(nic.oid)
+        self.set(host_nics=self.host_nics)
+        
+    def remove_host_nic(self, nic):
+        assert isinstance(nic, HostNic)
+        try:
+            self.host_nics.remove(nic.oid)
+            self.set(host_nics=self.host_nics)
+        except KeyError:
+            pass
+
+    def get_host_nics(self):
+        cluster = Cluster.instance()
+        return [cluster.get(x) for x in self.host_nics]
