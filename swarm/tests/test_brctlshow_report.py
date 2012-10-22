@@ -21,4 +21,7 @@ class BrctlShowCase(BaseTestCase):
         self.assertTrue(node)
         eth2 = node.get_host_nic('eth2')
         self.assertTrue(eth2)
-        self.assertEqual(eth2.bridge, 'virbr2')
+        self.assertEqual(eth2.in_bridge, 'virbr2')
+        virbr2 = node.get_host_nic('virbr2')
+        self.assertEqual(virbr2.bridge_for,
+                         ['eth2', 'vnet0', 'vnet1'])

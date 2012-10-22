@@ -44,7 +44,8 @@ class HostNic(Entity):
         self.mask = kw.get('mask')
         self.rx_bytes = kw.get('rx_bytes')
         self.tx_bytes = kw.get('rx_bytes')
-        self.bridge = kw.get('bridge')
+        self.in_bridge = kw.get('in_bridge')
+        self.bridge_for = kw.get('bridge_for', [])
 
 
 class MountPoint(Entity):
