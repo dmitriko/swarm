@@ -8,9 +8,9 @@ import sys
 
 
 USER = 'vgdcloud'
-PYTHON_DEPS = ['tornado', 'pika' 'ipython'] 
+PYTHON_DEPS = ['tornado', 'pika', 'ipython'] 
 YUM_DEPS = ['emacs-nox', 'sudo', 'python-setuptools', 'kvm',
-            'virt-manager', 'libvrit', 'bridge-utils',
+            'virt-manager', 'libvirt', 'bridge-utils',
             'qemu-kvm', 'wget', 'avahi']
 PKLA_FILE = \
 '/etc/polkit-1/localauthority/50-local.d/50-libvirt-remote-access.pkla'
@@ -59,14 +59,14 @@ def yum_install():
 
 def fix_libvirt():
     "Remove default network, fix avahi"
-    call(['/etc/init.d/libvritd', 'restart'])
+    call(['/etc/init.d/libvirtd', 'restart'])
     call(['/etc/init.d/messagebus', 'restart'])
     call(['/etc/init.d/avahi-daemon', 'restart'])
     call(['/sbin/chkconfig', 'messagebus', 'on'])
     call(['/sbin/chkconfig', 'avahi-daemon', 'on'])
-    call(['virsh', 'net-destroy', 'default'])
-    call(['virsh', 'net-undefine', 'default'])
-    call(['/etc/init.d/libvritd', 'restart'])
+    Popen(['virsh', 'net-destroy', 'default'], stderr=PIPE)
+    Popen(['virsh', 'net-undefine', 'default'], stderr=PIPE)
+    call(['/etc/init.d/libvirtd', 'restart'])
 
 
 def easy_install():
@@ -101,7 +101,7 @@ def create_dirs():
 def make_pkla_file():
     "Make PolicyKit file to allow non root user manage libvirt"
     if os.path.exists(PKLA_FILE):
-        print 'Warning: %s already exists' % PKLA_FILE
+        print '\nWarning: %s already exists\n' % PKLA_FILE
         return
 
     dir_name = os.path.dirname(PKLA_FILE)
@@ -116,9 +116,10 @@ def main():
     yum_install()
     add_user()
     create_dirs()
+    make_pkla_file()
     fix_libvirt()
     easy_install()
-    print 'Done'
+    print '\nNode setup success!'
 
 
 if __name__ == '__main__':
