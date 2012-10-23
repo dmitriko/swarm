@@ -8,13 +8,13 @@ import sys
 
 
 USER = 'vgdcloud'
-PYTHON_DEPS = ['tornado', 'pika']
+PYTHON_DEPS = ['tornado', 'pika' 'ipython'] 
 YUM_DEPS = ['emacs-nox', 'sudo', 'python-setuptools', 'kvm',
             'virt-manager', 'libvrit', 'bridge-utils',
             'qemu-kvm', 'wget', 'avahi']
 PKLA_FILE = \
 '/etc/polkit-1/localauthority/50-local.d/50-libvirt-remote-access.pkla'
-DEFAULT_PKLA_CONTENT = """libvirt Management Access]
+DEFAULT_PKLA_CONTENT = """[libvirt Management Access]
 Identity=unix-user:%s
 Action=org.libvirt.unix.manage
 ResultAny=yes
