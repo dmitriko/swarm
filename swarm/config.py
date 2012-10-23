@@ -27,9 +27,6 @@ def define_common_options():
     define('updates_exchange', help="Name for AMQP exchange for updates",
            default="updates_ex")
 
-    define('reports_exchange', help='Name for AMQP exchange for reports',
-           default='reports_ex')
-
     define('events_exchange', help='Name for AMQP exchage for events',
            default='events_ex')
 
@@ -39,9 +36,6 @@ def define_common_options():
     define('events_queue', default='events_q',
            help='Name for AMQP Queue for Manager listen Events')
 
-    define('reports_queue', default='reports_q',
-           help='Name for AMQP Queue for Manager listen Reports')
-           
            
 def define_node_options():
     define('oid', help='UUID of current node')
