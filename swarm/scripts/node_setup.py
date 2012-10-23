@@ -5,13 +5,14 @@
 from subprocess import call, Popen, PIPE
 import os
 import sys
+import socket
 
 
 USER = 'vgdcloud'
 PYTHON_DEPS = ['tornado', 'pika', 'ipython'] 
 YUM_DEPS = ['emacs-nox', 'sudo', 'python-setuptools', 'kvm',
             'virt-manager', 'libvirt', 'bridge-utils',
-            'qemu-kvm', 'wget', 'avahi']
+            'qemu-kvm', 'wget', 'avahi', 'vconfig']
 PKLA_FILE = \
 '/etc/polkit-1/localauthority/50-local.d/50-libvirt-remote-access.pkla'
 DEFAULT_PKLA_CONTENT = """[libvirt Management Access]
@@ -47,6 +48,13 @@ def check_is_root():
     if os.getuid() != 0:
         sys.stderr.write('Run it with sudo.')
         sys.exit(1)
+
+
+def check_hostname():
+    try:
+        socket.gethostbyname(socket.gethostname())
+    except:
+        raise RuntimeError("Please, put hostname to /etc/hosts file")
 
 
 def yum_install():
