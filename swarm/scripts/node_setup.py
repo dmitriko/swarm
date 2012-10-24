@@ -51,6 +51,7 @@ def check_is_root():
 
 
 def check_hostname():
+    "Raise error if we can get host by hostname, libvrit needs that"
     try:
         socket.gethostbyname(socket.gethostname())
     except:
