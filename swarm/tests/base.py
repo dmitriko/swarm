@@ -30,6 +30,7 @@ class BaseTestCase(AsyncTestCase):
         define_node_options()
         parse_config_file(os.path.join(DIR, 'config_data.py'))
         self.init_storages()
+        self.node_oid = str(uuid.uuid1())
 
 
     def init_storages(self):
@@ -53,7 +54,6 @@ class AMQPCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         self.manager_oid = str(uuid.uuid1())
-        self.node_oid = str(uuid.uuid1())
         self.manager = None
         self.node = None
         parameters = pika.ConnectionParameters('localhost')
