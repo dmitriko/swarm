@@ -61,7 +61,8 @@ class Entity(object):
             info = {}
         info.update(kw)
         for key, value in info.items():
-            setattr(self, key, value)
+            if key not in ['created', 'updated']:
+                setattr(self, key, value)
         self._validate()
         self.updated = time.time()
 
