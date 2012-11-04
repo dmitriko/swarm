@@ -13,7 +13,7 @@ class BrctlShowCase(BaseTestCase):
 
     def test_report_arrived(self):
         node_oid = str(uuid.uuid1())
-        on_event(NodeOnlineEvent(node_oid))
+        on_event(NodeOnlineEvent(node_oid, 'testhost'))
         on_event(IFConfigReport(node_oid, raw_data=IFCONFIG_DATA))
         on_event(BrctlShowReport(node_oid, raw_data=BRCTL_SHOW_DATA))
         cluster = Cluster.instance()

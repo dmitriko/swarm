@@ -9,7 +9,8 @@ from swarm.cluster import Cluster
 
 class Node(Entity):
     "Host for hypervisor"
-    def __init__(self, **kw):
+    def __init__(self, hostname, **kw):
+        self.hostname = hostname
         self.host_nics = kw.get('host_nics', {})
         self.storages = kw.get('storages', [])
         self.vm_processes = kw.pop('vm_processes', {})

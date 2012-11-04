@@ -15,8 +15,9 @@ class NodeEvent(Event):
 
 
 class NodeOnlineEvent(NodeEvent):
-    def __init__(self, reporter, storages=None, **kw):
+    def __init__(self, reporter, hostname, storages=None, **kw):
         NodeEvent.__init__(self, reporter)
+        self.hostname = hostname
         self.storages = storages or []
 
     def to_dict(self):

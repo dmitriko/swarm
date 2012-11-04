@@ -10,7 +10,7 @@ from swarm.cluster import Cluster
 class NetworkBaseTest(BaseTestCase):
     def test_crud(self):
         cluster = Cluster.instance()
-        node = Node()
+        node = Node('testhost')
         cluster.store(node)
         on_event(IFConfigReport(node.oid, raw_data=IFCONFIG_DATA))
         network = Network('TestNetwork')

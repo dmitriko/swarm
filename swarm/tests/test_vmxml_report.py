@@ -29,7 +29,7 @@ class VmXMLCase(BaseTestCase):
         self.assertEqual(nic['target'], 'vnet0')
 
     def test_vmxml_report_updates_cluster(self):
-        on_event(NodeOnlineEvent(self.node_oid))
+        on_event(NodeOnlineEvent(self.node_oid, 'testhost'))
         report = VmXMLReport(self.node_oid, LIBVIRT_XML)
         on_event(report)
         cluster = Cluster.instance()
