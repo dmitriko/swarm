@@ -68,3 +68,97 @@ vnet1     Link encap:Ethernet  HWaddr FE:54:00:FE:49:DF
 
 
 BRCTL_SHOW_DATA = 'bridge name\tbridge id\t\tSTP enabled\tinterfaces\nvirbr2\t\t8000.3440b5e1968a\tno\t\teth2\n\t\t\t\t\t\t\tvnet0\n\t\t\t\t\t\t\tvnet1'
+
+
+LIBVIRT_XML = """<domain type='kvm' id='1'>
+  <name>usbvm</name>
+  <uuid>c2127a40-eb4c-4e3c-af5b-ab455fd8bb40</uuid>
+  <memory unit='KiB'>2048000</memory>
+  <currentMemory unit='KiB'>2048000</currentMemory>
+  <vcpu placement='static'>4</vcpu>
+  <os>
+    <type arch='x86_64' machine='rhel6.3.0'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/home/vgd/storage2/usbvm_d0.qcow2'/>
+      <target dev='hda' bus='ide'/>
+      <alias name='ide0-0-0'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/home/vgd/storage2/debian-6.0.6-amd64-DVD-1.iso'/>
+      <target dev='hdc' bus='ide'/>
+      <readonly/>
+      <alias name='ide0-1-0'/>
+      <address type='drive' controller='0' bus='1' target='0' unit='0'/>
+    </disk>
+    <controller type='usb' index='0'>
+      <alias name='usb0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2'/>
+    </controller>
+    <controller type='ide' index='0'>
+      <alias name='ide0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <interface type='bridge'>
+      <mac address='52:54:00:fe:49:df'/>
+      <source bridge='virbr2'/>
+      <target dev='vnet0'/>
+      <alias name='net0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <source path='/dev/pts/1'/>
+      <target port='0'/>
+      <alias name='serial0'/>
+    </serial>
+    <console type='pty' tty='/dev/pts/1'>
+      <source path='/dev/pts/1'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+    <input type='tablet' bus='usb'>
+      <alias name='input0'/>
+    </input>
+    <input type='mouse' bus='ps2'/>
+    <graphics type='vnc' port='5900' autoport='yes' listen='127.0.0.1'>
+      <listen type='address' address='127.0.0.1'/>
+    </graphics>
+    <video>
+      <model type='cirrus' vram='9216' heads='1'/>
+      <alias name='video0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </video>
+    <hostdev mode='subsystem' type='usb' managed='yes'>
+      <source>
+        <address bus='1' device='1'/>
+      </source>
+      <alias name='hostdev0'/>
+    </hostdev>
+    <memballoon model='virtio'>
+      <alias name='balloon0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </memballoon>
+  </devices>
+  <seclabel type='dynamic' model='selinux' relabel='yes'>
+    <label>system_u:system_r:svirt_t:s0:c321,c392</label>
+    <imagelabel>system_u:object_r:svirt_image_t:s0:c321,c392</imagelabel>
+  </seclabel>
+</domain>"""
+
+
+VIRSH_LIST = ' Id    Name                           State\n----------------------------------------------------\n 1     usbvm                          running\n 2     hydravm                        running\n 4     testvm                         running\n'
