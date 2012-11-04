@@ -1,6 +1,6 @@
 from .base import AMQPCase
 from .fixtures import IFCONFIG_DATA as RAW_DATA
-from swarm.reports.sproc_report import IFConfigReport
+from swarm.reports import IFConfigReport
 from swarm.cluster import Cluster
 from swarm.scenarios.onevent import on_mngr_msg as default_callback
 from swarm.events import NodeOnlineEvent

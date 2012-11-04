@@ -1,2 +1,3 @@
-from swarm.reports.sproc_report import (
-    IFConfigReport, DFReport, BrctlShowReport, VirshListReport)
+from swarm.reports.network import (
+    IFConfigReport, DFReport, BrctlShowReport)
+from swarm.reports.libvirt import VirshListReport

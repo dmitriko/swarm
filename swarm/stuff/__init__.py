@@ -1,3 +1,6 @@
+import uuid
+import os
+
 from tornado.options import options
 
 from swarm.entity import Entity
@@ -77,14 +80,11 @@ class Storage(Entity):
                 StoragePoint) if x.storage_oid == self.oid]
     
     @classmethod
-    def ensure(self, path, oid=None):
+    def ensure(cls, path, oid=None):
         """Create a dir in at file path, 
         generate uuid and store it in file, return storage oid
 
         """
-
-        import uuid
-        import os
         sys_dir = os.path.join(path, '.vgd')
         if not os.path.exists(sys_dir):
             os.makedirs(sys_dir)
@@ -124,3 +124,59 @@ class Network(Entity):
     def get_host_nics(self):
         cluster = Cluster.instance()
         return [cluster.get(x) for x in self.host_nics]
+
+
+class VmDisk(Entity):
+    def __init__(self, storage, path, type, info=None, stat=None, **kw):
+        self.storage = storage
+        self.path = path
+        self.type = type
+        self.info = info
+        self.stat = stat
+        Entity.__init__(self, **kw)
+
+
+class VmNic(Entity):
+    def __init__(self, mac=None, source_nic=None, target_nic=None, **kw):
+        self.mac = mac
+        self.source_nic = source_nic
+        self.target_nic = target_nic
+        Entity.__init__(self, **kw)
+
+
+class VmConfig(Entity):
+    def __init__(self, vcpu, memory, disks=None, nics=None, extra_devices=None, 
+                 libvirt_xml=None, name=None, features=None, **kw):
+        self.vcpu = vcpu
+        self.memory = memory
+        self.disks = disks or []
+        self.nics = nics or []
+        self.extra_devices = extra_devices
+        self.libvirt_xml = libvirt_xml
+        self._name = name
+        self.features = features or []
+        Entity.__init__(self, **kw)
+
+    @property
+    def name(self):
+        return self._name or self.oid
+
+    @classmethod
+    def from_xml(cls, xml):
+        "Create VmConfig from libvirt xml"
+        pass
+
+    def to_xml(self):
+        "Create xml to use in libvirt"
+        pass
+
+
+class VmProcess(Entity):
+    "Represent running VM on host"
+    def __init__(self, host, libvirt_id, state, vm_config=None, **kw):
+        self.host = host
+        self.libvirt_id = libvirt_id
+        self.vm_config = vm_config
+        self.state = state # libvirt state
+        Entity.__init__(self, **kw)
+
