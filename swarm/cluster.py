@@ -36,7 +36,10 @@ class Cluster(object):
         "Persist entity"
         assert isinstance(entity, Entity)
         self._entities[entity.__class__.__name__].add(entity.oid)
-        self._data[entity.oid] = entity
+        if entity.oid not in self._data:
+            self._data[entity.oid] = entity
+        else:
+            self._data[entity.oid].set(entity.to_dict())
 
     def delete(self, entity_or_oid):
         "Remove item from storage, accept entity or oid"
