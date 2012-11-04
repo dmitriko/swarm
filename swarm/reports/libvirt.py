@@ -65,6 +65,7 @@ class VmXMLReport(BaseReport):
         if not self.raw_data:
             return result
         root = ET.fromstring(self.raw_data)
+        result['libvirt_id'] = root.attrib.get('id')
         for name in ['name', 'uuid', 'memory', 'vcpu']:
             value = self._parse_simple_el(root, name)
             if value:
