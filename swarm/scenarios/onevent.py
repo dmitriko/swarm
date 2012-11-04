@@ -3,10 +3,10 @@
 
 from swarm.entity import Entity
 from swarm.events.base_event import Event
-from swarm.reports import IFConfigReport, BrctlShowReport
+from swarm.reports import IFConfigReport, BrctlShowReport, VmXMLReport
 from swarm.events import NodeOnlineEvent
 from swarm.cluster import Cluster
-from swarm.stuff import Node, HostNic, Storage
+from swarm.stuff import Node, HostNic, Storage, VmProcess, VmConfig, VmNic
 
 
 def on_mngr_msg(client, body, routing_key):
@@ -29,6 +29,39 @@ def on_event(event):
         return on_ifconfig(event)
     if isinstance(event, BrctlShowReport):
         return on_brctl_show(event)
+    if isinstance(event, VmXMLReport):
+        return on_vmxml(event)
+
+
+def on_report_from_offline_node(report):
+    """Handle situation when we got any report from 
+    node and we have no any info about that node
+
+    """
+    raise RuntimeError("Report %s for offline node %s" % (
+            report, report.node_oid))
+    
+
+def on_vmxml(event):
+    "Procedures on libvirt xml report"
+    cluster = Cluster.instance()
+    node = cluster.get(event.node_oid)
+    if node is None:
+        return on_report_from_offline_node(event)
+    data = event.parsed_data
+    nics = []
+    for nic in data['nics']:
+        nics.append(VmNic(**nic))
+    vm_config = VmConfig(oid=data['uuid'],
+                         vcpu=data['vcpu'],
+                         memory=data['memory'],
+                         name=data['name'],
+                         features=data['features'],
+                         libvirt_xml=event.raw_data,
+                         nics=nics)
+    cluster.store(vm_config)
+    if data.get('libvirt_id'):
+        node.update_vm_process(data['libvirt_id'], vm_config)
 
 
 def on_node_online(event):

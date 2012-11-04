@@ -12,6 +12,7 @@ class Node(Entity):
     def __init__(self, **kw):
         self.host_nics = kw.get('host_nics', {})
         self.storages = kw.get('storages', [])
+        self.vm_processes = kw.pop('vm_processes', {})
         Entity.__init__(self, **kw)
 
     def update_host_nic(self, name, **kw):
@@ -33,6 +34,19 @@ class Node(Entity):
             return nic
         except KeyError:
             return None
+    
+    def update_vm_process(self, libvirt_id, vm_config):
+        if libvirt_id not in self.vm_processes or self.vm_processes[
+            libvirt_id].vm_config.oid != vm_config.oid:
+            vm_process = VmProcess(self, libvirt_id, vm_config)
+            Cluster.instance().store(vm_process)
+            self.vm_processes[libvirt_id] = vm_process
+        
+    def get_vm_processes(self):
+        result = []
+        for id_ in sorted(self.vm_processes.keys()):
+            result.append(self.vm_processes[id_])
+        return result
 
 
     @classmethod
@@ -137,10 +151,10 @@ class VmDisk(Entity):
 
 
 class VmNic(Entity):
-    def __init__(self, mac=None, source_nic=None, target_nic=None, **kw):
+    def __init__(self, mac, bridge, target, **kw):
         self.mac = mac
-        self.source_nic = source_nic
-        self.target_nic = target_nic
+        self.bridge = bridge
+        self.target = target
         Entity.__init__(self, **kw)
 
 
@@ -157,14 +171,8 @@ class VmConfig(Entity):
         self.features = features or []
         Entity.__init__(self, **kw)
 
-    @property
     def name(self):
         return self._name or self.oid
-
-    @classmethod
-    def from_xml(cls, xml):
-        "Create VmConfig from libvirt xml"
-        pass
 
     def to_xml(self):
         "Create xml to use in libvirt"
@@ -173,10 +181,9 @@ class VmConfig(Entity):
 
 class VmProcess(Entity):
     "Represent running VM on host"
-    def __init__(self, host, libvirt_id, state, vm_config=None, **kw):
+    def __init__(self, host, libvirt_id, vm_config=None, **kw):
         self.host = host
         self.libvirt_id = libvirt_id
         self.vm_config = vm_config
-        self.state = state # libvirt state
         Entity.__init__(self, **kw)
 
