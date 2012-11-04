@@ -1,6 +1,6 @@
 import re
 
-from .base_report import SubprocessReport
+from .base_report import BaseReport, SubprocessReport
         
 
 class VirshListReport(SubprocessReport):
@@ -23,3 +23,57 @@ class VirshListReport(SubprocessReport):
                                               state=match.group(3))
         return result
 
+
+class VmXMLReport(BaseReport):
+    "Report from libvirt with XML for VM"
+
+    def _parse_simple_el(self, root, name):
+        "Return text of element for given name"
+        elm = root.find(name)
+        if elm is not None:
+            return elm.text
+        return None
+
+    def _get_nics(self, root):
+        "Return list of dicts with info for vm nic interface"
+        result = []
+        for elm in root.findall('devices/interface'):
+            nic = {}
+            mac_el = elm.find('mac')
+            if mac_el is not None:
+                nic['mac'] = mac_el.attrib['address']
+            bridge_el = elm.find('source')
+            if bridge_el is not None:
+                nic['bridge'] = bridge_el.attrib['bridge']
+            target_el = elm.find('target')
+            if target_el is not None:
+                nic['target'] = target_el.attrib['dev']
+            result.append(nic)
+        return result
+
+    def _get_disks(self, root):
+        "Return list of pathes for disks" 
+        return [x.attrib['file'] for x in root.findall('devices/disk/source')]
+
+    @property
+    def parsed_data(self):
+        """Return dict with info about VM
+        
+        """
+        from xml.etree import ElementTree as ET
+        result = {}
+        if not self.raw_data:
+            return result
+        root = ET.fromstring(self.raw_data)
+        for name in ['name', 'uuid', 'memory', 'vcpu']:
+            value = self._parse_simple_el(root, name)
+            if value:
+                result[name] = value
+        result['features'] = [x.tag for x in root.findall('features/*')]
+        result['disks'] = self._get_disks(root)
+        result['nics'] = self._get_nics(root)
+
+        return result
+        
+        
+        
