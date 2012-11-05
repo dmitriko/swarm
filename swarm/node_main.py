@@ -1,0 +1,81 @@
+from tornado.ioloop import IOLoop
+from tornado.options import options
+from tornado.web import Application, HTTPError, url, RequestHandler
+from tornado.websocket import WebSocketHandler
+
+from swarm.utils.log import log
+
+
+class NoVNCHandler(RequestHandler):
+    def get(self, vm_uuid):
+        return self.render('novnc.html', vm_uuid=vm_uuid)
+
+
+class NoVNCWebSocketHandler(WebSocketHandler):
+    "Proxy websocket traffic to socket"
+
+    def open(self, vm_uuid):
+        "Browser connected"
+        log.debug("Open web socket connection for %s" % vm_uuid)
+        self.vm_uuid = vm_uuid
+        self.stream = self.get_stream()
+
+    def on_message(self, msg):
+        "Handle message from browser"
+        from base64 import b64decode
+        self.stream.write(b64decode(msg))
+     
+    def on_close(self, *args):
+        "Browser closed connection"
+        pass
+
+    def get_vnc_port(self):
+        "Return VNC port number"
+        import commands
+        import re
+        out = commands.getoutput('virsh vncdisplay %s' % self.vm_uuid)
+        match = re.search(':(\d)+', out)
+        if not match:
+            log.error("Coulg not get vnc port, %s" % out)
+            raise HTTPError(404)
+        return int(match.group(1))
+
+    def get_stream(self):
+        "Return IOStream or SSLIOstream to VNC server"
+        import socket
+        import commands
+        from tornado.iostream import IOStream
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        stream = IOStream(sock)
+        stream.set_close_callback(self.on_close)
+        stream.connect(
+            ('127.0.0.1', self.get_vnc_port()), self.connected_to_vnc)
+        return stream
+
+    def on_vnc_data(self, data):
+        "Proxy VNC data to browser"
+        from base64 import b64encode
+        self.write_message(b64encode(data))
+
+    def connected_to_vnc(self):
+        "Start reading from VNC server"
+        self.stream.read_until_close(callback=self.on_close,
+                                streaming_callback=self.on_vnc_data)
+
+
+def get_app():
+    import os
+    static_path = os.path.join(os.path.dirname(__file__), 'static') 
+    template_path = os.path.join(os.path.dirname(__file__), 'templates')
+    return Application([url(r'/vmconsole/([^/]+)', NoVNCHandler),
+                        url(r'/wsocket/([^/]+)', NoVNCWebSocketHandler)], 
+                       static_path=static_path,
+                       template_path=template_path,
+                       debug=True)
+
+
+if __name__ == '__main__':
+    get_app().listen(9443)
+    IOLoop.instance().start()
+
+
