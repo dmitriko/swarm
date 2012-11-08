@@ -36,6 +36,6 @@ class VmXMLCase(BaseTestCase):
         vms = cluster.entities_by_class('VmProcess')
         self.assertEqual(len(vms), 1)
         node = cluster.get(self.node_oid)
-        self.assertEqual(len(node.get_vm_processes()), 1)
+        self.assertEqual(len(node.get_vm_procs()), 1)
         vm_proc = vms[0]
         self.assertEqual(vm_proc.vm_config.nics[0].target, 'vnet0')

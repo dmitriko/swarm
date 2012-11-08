@@ -5,6 +5,7 @@ import uuid
 import json
 from copy import copy
 
+from swarm import fields
 
 class ValidationError(Exception): 
     pass
@@ -28,7 +29,13 @@ class MetaEntity(type):
     Registry = {} # class name : class itself. 
 
     def __init__(mcs, *args, **kw):
-
+        mcs._fields = {}
+        for attr_name in dir(mcs):
+            if attr_name.startswith('__'):
+                continue
+            field = getattr(mcs, attr_name)
+            if isinstance(field, fields.BaseField):
+                mcs._fields[attr_name] = field
         MetaEntity.Registry[mcs.__name__] = mcs
 
 
@@ -38,11 +45,21 @@ class Entity(object):
 
     ValidationError = ValidationError
 
-    def __init__(self, **kw):
-        self.oid = kw.get('oid', str(uuid.uuid1()))
-        self.created = kw.get('created', time.time())
-        self.updated = kw.get('updated', time.time())
-        self._validate()
+    oid = fields.BaseField('oid', default=lambda : str(uuid.uuid4()))
+    created = fields.BaseField('created', default=time.time)
+    updated = fields.BaseField('updated', default=time.time)
+
+
+    def __init__(self, data=None, **kw):
+        if data and not isinstance(data, dict):
+            raise RuntimeError(
+                "Only keywoard arguments should be povided or sole dict")
+        self._data = data or {}
+        for key, value in kw.items():
+            setattr(self, key, value)
+        for attr_name, field in self._fields.items():
+            if field.key not in self._data and field.default:
+                setattr(self, attr_name, getattr(self, attr_name))
 
     def _validate(self):
         try:
