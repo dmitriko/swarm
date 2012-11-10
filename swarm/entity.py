@@ -58,8 +58,11 @@ class Entity(object):
         for key, value in kw.items():
             setattr(self, key, value)
         for attr_name, field in self._fields.items():
-            if field.key not in self._data and field.default:
-                setattr(self, attr_name, getattr(self, attr_name))
+            if field.key not in self._data:
+                if field.required:
+                    raise ValidationError("%s is required" % attr_name)
+                if field.default:
+                    setattr(self, attr_name, getattr(self, attr_name))
 
     def _validate(self):
         try:
