@@ -15,7 +15,7 @@ class Node(Entity):
     host_nics = fields.DictField('host_nics')
     storages = fields.ListField('storages')
     vm_procs = fields.DictField('vm_procs')
-
+    state = fields.BaseField('state', choices=['offline', 'online'])
 
     def update_host_nic(self, name, **kw):
         nic = self.get_host_nic(name)
@@ -139,6 +139,7 @@ class VmDisk(Entity):
     type = fields.BaseField('type')
     info = fields.DictField('info')
     stat = fields.DictField('stat')
+
 
 class VmNic(Entity):
     mac = fields.BaseField('mac')
