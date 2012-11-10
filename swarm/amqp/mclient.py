@@ -19,21 +19,21 @@ class ManagerAMQPClient(AMQPClient):
         yield gen.Task(channel.exchange_declare,
                        exchange=options.rpc_exchange, type='topic')
         yield gen.Task(channel.exchange_declare,
-                       exchange=options.events_exchange, type='topic')
-        yield gen.Task(channel.queue_declare, queue=options.events_queue)
+                       exchange=options.reports_exchange, type='topic')
+        yield gen.Task(channel.queue_declare, queue=options.reports_queue)
 
         log.debug("Exchanges for Manager are declared")
 
         yield gen.Task(channel.queue_bind,
-                       queue=options.events_queue, 
-                       exchange=options.events_exchange,
+                       queue=options.reports_queue, 
+                       exchange=options.reports_exchange,
                        routing_key='#')
 
-        log.debug("events queue %s is bound" % options.events_queue)
+        log.debug("reports queue %s is bound" % options.reports_queue)
 
         self.channel.basic_consume(
-            consumer_callback=self.get_consumer_callback(options.events_queue),
-            queue=options.events_queue,
+            consumer_callback=self.get_consumer_callback(options.reports_queue),
+            queue=options.reports_queue,
             no_ack=False)
 
 
@@ -41,6 +41,6 @@ class ManagerAMQPClient(AMQPClient):
         "Put task msg to rpc exchange"
         self.channel.basic_publish(body=task.to_json(),
                              exchange=options.rpc_exchange,
-                             routing_key=task.performer,
+                             routing_key=task.node_oid,
                              properties=pika.BasicProperties(
                 content_type='application/json'))

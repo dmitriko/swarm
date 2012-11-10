@@ -94,8 +94,10 @@ class Entity(object):
 
     def to_dict(self):
         "Return dict ready to send via wire as json"
-        info = copy(self.__dict__)
+        info = {}
         info['cls'] = self.__class__.__name__
+        for attr_name in self._fields.keys():
+            info[attr_name] = getattr(self, attr_name)
         return info
 
     def to_json(self):

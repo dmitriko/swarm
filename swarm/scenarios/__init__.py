@@ -1,1 +1,1 @@
-from .onevent import on_event
+from .onevent import on_report

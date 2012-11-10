@@ -3,7 +3,7 @@ from .fixtures import IFCONFIG_DATA
 
 from swarm.stuff import Network, Node
 from swarm.reports import IFConfigReport
-from swarm.scenarios import on_event
+from swarm.scenarios import on_report
 from swarm.cluster import Cluster
 
 
@@ -12,7 +12,7 @@ class NetworkBaseTest(BaseTestCase):
         cluster = Cluster.instance()
         node = Node(hostname='testhost')
         cluster.store(node)
-        on_event(IFConfigReport(node.oid, raw_data=IFCONFIG_DATA))
+        on_report(IFConfigReport.create(node.oid, raw_data=IFCONFIG_DATA))
         network = Network(title='TestNetwork')
         virbr2 = node.get_host_nic('virbr2')
         network.add_host_nic(virbr2)

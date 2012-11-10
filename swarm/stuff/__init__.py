@@ -79,8 +79,8 @@ class HostNic(Entity):
 
 class StoragePoint(Entity):
     "Store host-storage relation, could be mount or just regular dir"
-    node = fields.ReferenceField('node')
-    storage = fields.ReferenceField('storage')
+    node_oid = fields.ReferenceField('node', required=True)
+    storage_oid = fields.ReferenceField('storage')
     path = fields.BaseField('path')
 
 

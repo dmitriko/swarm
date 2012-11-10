@@ -27,13 +27,13 @@ def define_common_options():
     define('updates_exchange', help="Name for AMQP exchange for updates",
            default="updates_ex")
 
-    define('events_exchange', help='Name for AMQP exchage for events',
-           default='events_ex')
+    define('reports_exchange', help='Name for AMQP exchage for events',
+           default='reports_ex')
 
     define('rpc_exchange', help='Name for AMQP exchange used for RPC',
            default='rpc_ex')
 
-    define('events_queue', default='events_q',
+    define('reports_queue', default='events_q',
            help='Name for AMQP Queue for Manager listen Events')
 
            

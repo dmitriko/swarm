@@ -4,20 +4,21 @@ import time
 from copy import copy
 
 from swarm.entity import Entity, ValidationError
-from swarm.events import TaskUpdated
+from swarm.reports import TaskUpdated
+from swarm import fields
+from swarm.utils.log import log
 
 STATUSES = ['created', 'accepted', 'inprogress', 'failed', 'success']
 
 
 class BaseTask(Entity):
-    def __init__(self, performer, **kw):
-        self.performer = performer
-        self.status = kw.get('status', 'created')
-        self.valid_period = kw.get('valid_period', 30) # sec
-        self.progress = kw.get('progress', 0)
-        self.result = kw.get('result')
-        self.error = kw.get('error')
-        Entity.__init__(self, **kw)
+
+    node_oid = fields.BaseField('node_oid', required=True)
+    status = fields.BaseField('status', choices=STATUSES, default='created')
+    valid_period = fields.BaseField('valid_period', default=30)
+    progress = fields.BaseField('progress', default=0)
+    result = fields.BaseField('result')
+    error = fields.BaseField('error')
 
     @property
     def is_acceptable(self):
@@ -43,7 +44,7 @@ class BaseTask(Entity):
         "Todo on fail"
         pass
 
-    def report(self, client):
-        "Report about update"
-        event = TaskUpdated(client.oid, copy(self))
-        client.publish_event(event)
+    def report(self, client, info):
+        "Report aboute task update"
+        event = TaskUpdated.create(client.oid, task=info)
+        client.publish_report(event)

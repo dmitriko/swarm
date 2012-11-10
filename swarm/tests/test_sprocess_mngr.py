@@ -11,7 +11,7 @@ class SubProccessMngrCase(AMQPCase):
             inst = self.entity_from_json(body)
             if isinstance(inst, IFConfigReport):
                 self.stop()
-            if inst.__class__.__name__ == 'NodeOnlineEvent':
+            if inst.__class__.__name__ == 'NodeOnlineReport':
                 smanager = SubprocessManager(self.node)
                 smanager.add_report(IFConfigReport, 15)
                 smanager.start()

@@ -2,15 +2,14 @@ from .base import BaseTestCase
 
 from .fixtures import LIBVIRT_XML
 
-from swarm.reports import VmXMLReport
-from swarm.scenarios import on_event
+from swarm.reports import VmXMLReport, NodeOnlineReport
+from swarm.scenarios import on_report
 from swarm.cluster import Cluster
-from swarm.events import NodeOnlineEvent
 
 
 class VmXMLCase(BaseTestCase):
     def test_parsing(self):
-        report = VmXMLReport(self.node_oid, LIBVIRT_XML)
+        report = VmXMLReport.create(self.node_oid, raw_data=LIBVIRT_XML)
         data = report.parsed_data
         self.assertEqual('c2127a40-eb4c-4e3c-af5b-ab455fd8bb40', data['uuid'])
         self.assertEqual(data['name'], 'usbvm')
@@ -29,9 +28,9 @@ class VmXMLCase(BaseTestCase):
         self.assertEqual(nic['target'], 'vnet0')
 
     def test_vmxml_report_updates_cluster(self):
-        on_event(NodeOnlineEvent(self.node_oid, 'testhost'))
-        report = VmXMLReport(self.node_oid, LIBVIRT_XML)
-        on_event(report)
+        on_report(NodeOnlineReport.create(self.node_oid, hostname='testhost'))
+        report = VmXMLReport.create(self.node_oid, raw_data = LIBVIRT_XML)
+        on_report(report)
         cluster = Cluster.instance()
         vms = cluster.entities_by_class('VmProcess')
         self.assertEqual(len(vms), 1)

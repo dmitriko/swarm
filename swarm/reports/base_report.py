@@ -1,11 +1,19 @@
-from swarm.events.base_event import Event
+from swarm.entity import Entity
+from swarm import fields
 
 
-class BaseReport(Event):
+class BaseReport(Entity):
     "Represent any report info in wire"
-    def __init__(self, reporter, raw_data=None, **kw):
-        Event.__init__(self, reporter, **kw)
-        self.raw_data = raw_data
+    reporter_oid = fields.BaseField('reporter_oid', required=True)
+    node_oid = fields.BaseField('node_oid')
+    raw_data = fields.BaseField('raw_data')
+
+    @classmethod
+    def create(cls, node_oid, **kw):
+        "Return instance"
+        return cls(reporter_oid = node_oid,
+                   node_oid = node_oid,
+                   **kw)
 
 
 class SubprocessReport(BaseReport):

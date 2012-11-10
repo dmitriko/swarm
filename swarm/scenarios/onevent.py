@@ -2,36 +2,36 @@
 
 
 from swarm.entity import Entity
-from swarm.events.base_event import Event
-from swarm.reports import IFConfigReport, BrctlShowReport, VmXMLReport
-from swarm.events import NodeOnlineEvent
+from swarm.reports import IFConfigReport, BrctlShowReport, VmXMLReport, NodeOnlineReport
 from swarm.cluster import Cluster
-from swarm.stuff import Node, HostNic, Storage, VmProcess, VmConfig, VmNic
+from swarm.stuff import Node, HostNic, Storage, VmProcess, VmConfig, VmNic, StoragePoint
 
 
 def on_mngr_msg(client, body, routing_key):
+    from swarm.reports.base_report import BaseReport
     entity = Entity.from_json(body)
-    if isinstance(entity, Event):
-        return on_event(entity)
+    if isinstance(entity, BaseReport):
+        return on_report(entity)
 
 
 def on_node_started(client):
     "Use it only in node context"
     import socket
-    event = NodeOnlineEvent(client.oid, socket.gethostname())
-    event.storages = Node.get_storage_points(client)
-    client.publish_event(event)
+    report = NodeOnlineReport.create(client.oid, 
+                                    hostname=socket.gethostname())
+    report.storages = [x.to_dict() for x in Node.get_storage_points(client)]
+    client.publish_report(report)
 
 
-def on_event(event):
-    if isinstance(event, NodeOnlineEvent):
-        return on_node_online(event)
-    if isinstance(event, IFConfigReport):
-        return on_ifconfig(event)
-    if isinstance(event, BrctlShowReport):
-        return on_brctl_show(event)
-    if isinstance(event, VmXMLReport):
-        return on_vmxml(event)
+def on_report(report):
+    if isinstance(report, NodeOnlineReport):
+        return on_node_online(report)
+    if isinstance(report, IFConfigReport):
+        return on_ifconfig(report)
+    if isinstance(report, BrctlShowReport):
+        return on_brctl_show(report)
+    if isinstance(report, VmXMLReport):
+        return on_vmxml(report)
 
 
 def on_report_from_offline_node(report):
@@ -43,13 +43,13 @@ def on_report_from_offline_node(report):
             report, report.node_oid))
     
 
-def on_vmxml(event):
+def on_vmxml(report):
     "Procedures on libvirt xml report"
     cluster = Cluster.instance()
-    node = cluster.get(event.node_oid)
+    node = cluster.get(report.node_oid)
     if node is None:
-        return on_report_from_offline_node(event)
-    data = event.parsed_data
+        return on_report_from_offline_node(report)
+    data = report.parsed_data
     nics = []
     for nic in data['nics']:
         nics.append(VmNic(**nic))
@@ -58,16 +58,17 @@ def on_vmxml(event):
                          memory=data['memory'],
                          name=data['name'],
                          features=data['features'],
-                         libvirt_xml=event.raw_data,
+                         libvirt_xml=report.raw_data,
                          nics=nics)
     cluster.store(vm_config)
     if data.get('libvirt_id'):
         node.update_vm_process(data['libvirt_id'], vm_config)
 
 
-def on_node_online(event):
+def on_node_online(report):
+    from swarm.stuff import Storage
     cluster = Cluster.instance()
-    node = Node(oid=event.node_oid, storages=event.storages, hostname=event.hostname)
+    node = Node(oid=report.node_oid, storages=report.storages, hostname=report.hostname)
     cluster.store(node)
 
 

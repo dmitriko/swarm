@@ -1,7 +1,7 @@
 from swarm.entity import Entity
 from swarm.scenarios.onevent import on_mngr_msg as default_mngr_callback
 from swarm.cluster import Cluster
-from swarm.events import NodeOnlineEvent
+from swarm.reports import NodeOnlineReport
 from swarm.stuff import Node
 
 
@@ -14,7 +14,7 @@ class NodeManagerCommCase(AMQPCase):
         def on_mngr_msg(client, body, routing_key):
             default_mngr_callback(client, body, routing_key)
             event = Entity.from_json(body)
-            if isinstance(event, NodeOnlineEvent):
+            if isinstance(event, NodeOnlineReport):
                 node = Cluster.instance().get(self.node_oid)
                 self.assertEqual(len(node.storages), 2)
                 for mount_point in node.storages:
@@ -37,7 +37,7 @@ class NodeManagerCommCase(AMQPCase):
         def on_mngr_msg(client, body, routing_key):
             event = Entity.from_json(body)
             self.assertEqual(event.__class__.__name__,
-                             'NodeOnlineEvent')
+                             'NodeOnlineReport')
             self.assertEqual(event.node_oid, self.node_oid)
             self.stop()
 

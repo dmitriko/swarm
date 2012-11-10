@@ -1,9 +1,8 @@
 from .base import AMQPCase
 from .fixtures import IFCONFIG_DATA as RAW_DATA
-from swarm.reports import IFConfigReport
+from swarm.reports import IFConfigReport, NodeOnlineReport
 from swarm.cluster import Cluster
 from swarm.scenarios.onevent import on_mngr_msg as default_callback
-from swarm.events import NodeOnlineEvent
 
 
 class IFConfigReportCase(AMQPCase):
@@ -14,9 +13,9 @@ class IFConfigReportCase(AMQPCase):
             inst = self.entity_from_json(body)
             default_callback(client, body, routing_key)
 
-            if isinstance(inst, NodeOnlineEvent):
-                self.node.publish_event(
-                    IFConfigReport(self.node_oid, RAW_DATA))
+            if isinstance(inst, NodeOnlineReport):
+                self.node.publish_report(
+                    IFConfigReport.create(self.node_oid, raw_data=RAW_DATA))
 
             if isinstance(inst, IFConfigReport):
                 self.assertEqual(inst.raw_data, RAW_DATA)
