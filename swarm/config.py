@@ -36,6 +36,9 @@ def define_common_options():
     define('reports_queue', default='events_q',
            help='Name for AMQP Queue for Manager listen Events')
 
+    define('on_test', default=False, type=bool, 
+           help='Set True when unit testing')
+
            
 def define_node_options():
     define('oid', help='UUID of current node')
