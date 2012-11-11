@@ -39,7 +39,13 @@ def define_common_options():
     define('on_test', default=False, type=bool, 
            help='Set True when unit testing')
 
+    define('http_port', default=8443, type=int,
+           help='Port to listen on')
+
+    define('http_host', default='localhost',
+           help='Address to listen on')
            
+
 def define_node_options():
     define('oid', help='UUID of current node')
     define('storages', help='Comma separated list of paths to storages')

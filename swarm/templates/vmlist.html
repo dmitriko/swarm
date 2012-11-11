@@ -25,6 +25,16 @@
 		<th class="right">Actions</th>
 	      </tr>
 	    </thead>
+	    <tbody>
+	      {% for vm in vm_list %}
+	      <td>{{ vm.vm_config.name }}</td>
+	      <td>{{ vm.vm_config.vcpu }}</td>
+	      <td>{{ int(vm.vm_config.memory) / 1024 }} Mb </td>
+	      <td>{{ vm.node.hostname }}</td>
+	      <td>{{ ", ".join([x.bridge for x in vm.vm_config.nics]) }}</td>
+	      <td></td>
+	      {% end %}
+	    </tbody>
 	  </table>
 	</div>
       </div>
