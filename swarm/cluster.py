@@ -12,6 +12,9 @@ class Cluster(object):
     _instance_lock = threading.Lock()
 
     def __init__(self):
+        self.init()
+
+    def init(self):
         self._data = {}
         self._entities = defaultdict(set)
 

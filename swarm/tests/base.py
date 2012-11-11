@@ -17,6 +17,7 @@ from swarm.config import define_common_options, define_node_options
 from swarm.amqp.nclient import NodeAMQPClient
 from swarm.amqp.mclient import ManagerAMQPClient
 from swarm.entity import Entity
+from swarm.cluster import Cluster
 from swarm.stuff import Storage
 
 
@@ -31,7 +32,7 @@ class BaseTestCase(AsyncTestCase):
         parse_config_file(os.path.join(DIR, 'config_data.py'))
         self.init_storages()
         self.node_oid = str(uuid.uuid1())
-
+        Cluster.instance().init()
 
     def init_storages(self):
         self.storage1_path = '/tmp/storage1'
