@@ -31,7 +31,7 @@ def get_hypervisor():
         return get_libvirt_conn()
 
 
-def get_libvirt_conne():
+def get_libvirt_conn():
     import libvirt
-    return libvirt.open('qemu:///')
+    return libvirt.open('qemu:///system')
     
