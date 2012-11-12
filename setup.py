@@ -8,7 +8,7 @@ for uninstall
 
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 version = '0.8.2'
 
@@ -16,6 +16,6 @@ setup(name='swarm',
       author='DmitriKo',
       author_email='dmitrikozhevin@gmail.com',
       version=version,
-      packages=['swarm'],
+      packages=find_packages(),
       install_requires=['tornado', 'pika'])
 
