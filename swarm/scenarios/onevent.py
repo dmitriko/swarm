@@ -5,10 +5,12 @@ from swarm.entity import Entity
 from swarm.reports import IFConfigReport, BrctlShowReport, VmXMLReport, NodeOnlineReport
 from swarm.cluster import Cluster
 from swarm.stuff import Node, HostNic, Storage, VmProcess, VmConfig, VmNic, StoragePoint
+from swarm.utils.log import log
 
 
 def on_mngr_msg(client, body, routing_key):
     from swarm.reports.base_report import BaseReport
+    log.debug("got msg %s" % body)
     entity = Entity.from_json(body)
     if isinstance(entity, BaseReport):
         return on_report(entity)

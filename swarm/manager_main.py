@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parse_command_line()
     init_logging()
     log.info("Starting application")
-    manager_oid = options.oid or str(uuid.uuid4())
+    manager_oid = options.oid or str(uuid.getnode())
     if options.on_test:
         load_fixtures(manager_oid)
     log.info("listen on %s:%s" % (options.http_host, options.http_port))
