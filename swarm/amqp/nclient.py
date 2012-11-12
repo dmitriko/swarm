@@ -17,10 +17,11 @@ class NodeAMQPClient(AMQPClient):
     def __init__(self, *args, **kw):
         AMQPClient.__init__(self, *args, **kw)
         self.reports_to_send = Queue()
+        self._on_channel_crated = kw.pop('on_channel_created', None)
 
     @gen.engine
     def on_channel_created(self, channel):
-        AMQPClient.on_channel_created(self, channel)
+        self.channel = channel
         frame = yield gen.Task(channel.queue_declare, 
                                exclusive=True, auto_delete=True) 
         self.rpc_queue = frame.method.queue
@@ -35,7 +36,9 @@ class NodeAMQPClient(AMQPClient):
 
         self.channel.basic_consume(self.get_consumer_callback(self.rpc_queue),
                                    queue=self.rpc_queue)
-        on_node_started(self)
+
+        if self._on_channel_created:
+            self._on_channel_created(self)
 
     def publish_report(self, report):
         "Put report to queue and transfer control to main thread"
