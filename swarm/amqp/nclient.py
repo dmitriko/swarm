@@ -39,6 +39,8 @@ class NodeAMQPClient(AMQPClient):
 
         if self._on_channel_created:
             self._on_channel_created(self)
+        else:
+            on_node_started(self)
 
     def publish_report(self, report):
         "Put report to queue and transfer control to main thread"

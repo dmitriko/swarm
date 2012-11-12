@@ -1,5 +1,6 @@
 import uuid
 import socket
+import time
 from functools import partial
 
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -85,12 +86,18 @@ def get_app():
                        template_path=template_path,
                        debug=True)
 
+def vm_inventory(client):
+    task = VMInventoryTask(node_oid=client.oid)
+    worker = TaskThreadWorker(client, task)
+    worker.start()
+
 
 def send_online_report(client):
     client.publish_report(NodeOnlineReport.create(
             client.oid,
             hostname=socket.gethostname()))
     
+
 def channel_created(client):
     log.debug("%s to RabbitMQ is created" % client.channel)
     send_online_report(client)
@@ -101,6 +108,9 @@ def channel_created(client):
     heartbeat = PeriodicCallback(partial(send_online_report, client),
                                  15000)
     heartbeat.start()
+    client.io_loop.add_deadline(partial(vm_inventory, client), 
+                                time.time() + 30)
+
 
 def on_msg(client, body, routing_key):
     try:
