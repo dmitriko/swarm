@@ -41,7 +41,7 @@ def on_report_from_offline_node(report):
     node and we have no any info about that node
 
     """
-    raise RuntimeError("Report %s for offline node %s" % (
+    raise log.warn("Report %s for offline node %s" % (
             report, report.node_oid))
     
 
