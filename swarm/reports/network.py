@@ -39,9 +39,10 @@ class IFConfigReport(SubprocessReport):
             return result
 
         for info in self.raw_data.split('\n\n'):
-
+            if not info:
+                continue
             nic = {}
-
+            
             match = re.match('^(\S+).*$', info, re.M)
             if match:
                 name = match.group(1)
