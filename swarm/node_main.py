@@ -1,9 +1,21 @@
-from tornado.ioloop import IOLoop
-from tornado.options import options
+import uuid
+import socket
+from functools import partial
+
+from tornado.ioloop import IOLoop, PeriodicCallback
+from tornado.options import options, parse_command_line
 from tornado.web import Application, HTTPError, url, RequestHandler
 from tornado.websocket import WebSocketHandler
 
-from swarm.utils.log import log
+from swarm.amqp.nclient import NodeAMQPClient
+from swarm.utils.log import log, init_logging
+from swarm.config import define_common_options, define_node_options
+from swarm.entity import Entity
+from swarm.tasks.base import BaseTask
+from swarm.utils import SubprocessManager
+from swarm.reports import NodeOnlineReport, IFConfigReport, BrctlShowReport
+from swarm.tasks import VMInventoryTask
+from swarm.tasks.worker import TaskThreadWorker
 
 
 class NoVNCHandler(RequestHandler):
@@ -33,7 +45,7 @@ class NoVNCWebSocketHandler(WebSocketHandler):
         "Return VNC port number"
         import commands
         import re
-        out = commands.getoutput('virsh vncdisplay %s' % self.vm_uuid)
+        out = commands.getoutput('virsh -c qemu:///system vncdisplay %s' % self.vm_uuid)
         match = re.search(':(\d)+', out)
         if not match:
             log.error("Coulg not get vnc port, %s" % out)
@@ -74,8 +86,43 @@ def get_app():
                        debug=True)
 
 
+def send_online_report(client):
+    client.publish_report(NodeOnlineReport.create(
+            client.oid,
+            hostname=socket.gethostname()))
+    
+def channel_created(client):
+    log.debug("%s to RabbitMQ is created" % client.channel)
+    send_online_report(client)
+    smanager = SubprocessManager(client)
+    smanager.add_report(IFConfigReport, 30)
+    smanager.add_report(BrctlShowReport, 30)
+    smanager.start()
+    heartbeat = PeriodicCallback(partial(send_online_report, client),
+                                 15000)
+    heartbeat.start()
+
+def on_msg(client, body, routing_key):
+    try:
+        entity = Entity.from_json(body)
+        assert isinstance(entity, BaseTask)
+        worker = TaskThreadWorker(client, task)
+        worker.start()
+    except Exception:
+        log.error("on msg processing", exc_info=True)
+
+
 if __name__ == '__main__':
-    get_app().listen(9443)
+#    get_app().listen(9443)
+    define_common_options()
+    define_node_options()
+    parse_command_line()
+    init_logging()
+    node_oid = options.oid or str(uuid.getnode())
+    client = NodeAMQPClient(oid=node_oid, 
+                            on_msg_callback=on_msg,
+                            on_channel_created=channel_created)
+    client.connect()
     IOLoop.instance().start()
 
 
