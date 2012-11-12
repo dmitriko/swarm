@@ -13,6 +13,7 @@ from swarm.utils.log import log, init_logging
 from swarm.amqp.mclient import ManagerAMQPClient
 from swarm.views import get_view, vm_list_tbody
 from swarm.scenarios.onevent import on_mngr_msg
+from swarm import tasks
 
 
 class VMListHandler(RequestHandler):
