@@ -1,0 +1,9 @@
+{% autoescape None %}
+{% extends "page.html" %}
+{% block title %} Details for {{ class_name }} {{ oid }} {% end %}
+{% block menu %} <a href='/'>Home</a> {% end %}
+{% block page_content %}
+<div class="span10">
+  {% raw table %}
+</div>
+{% end %}

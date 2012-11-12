@@ -7,9 +7,10 @@
     <link href="/static/css/modern.css" rel="stylesheet">
     <link href="/static/css/modern-responsive.css" rel="stylesheet">
 
-    <title> List of Virtual Machines </title>
+    <title>{% block title %} {% end %} </title>
 </head>
 <body class="modern-ui">
+  {% block menu %} <a href='/'>Refresh</a>{% end %}
   <div class="page secondary">
     <div class="page-region">
       <div class="page-region-content">

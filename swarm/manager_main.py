@@ -1,49 +1,63 @@
 "Main script to start manager process"
 
+import uuid
+
 from tornado.options import options, parse_command_line
-from tornado.web import Application, RequestHandler
+from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
 
 from swarm.cluster import Cluster
+from swarm.entity import Entity
 from swarm.config import define_common_options
 from swarm.utils.log import log, init_logging
 from swarm.amqp.mclient import ManagerAMQPClient
-
-
-class BaseHandler(RequestHandler):
-    def render(self, template, **kw):
-        def get_link(obj, title):
-            return "<a href='/entity/%s'>%s</a>" % (obj.oid, title)
-        kw['get_link'] = get_link
-        RequestHandler.render(self, template, **kw)
+from swarm.views import get_view, vm_list_tbody
+from swarm.scenarios.onevent import on_mngr_msg
 
 
 class VMListHandler(RequestHandler):
     def get(self):
         cluster = Cluster.instance()
         self.render('vmlist.html',  
-                    vm_list = cluster.entities_by_class('VmProcess'))
+                    vm_list_tbody = vm_list_tbody(
+                cluster.entities_by_class('VmProcess')))
 
+
+class EntityHandler(RequestHandler):
+
+    def get(self, path):
+        """Return view for entity 
+
+        """
+        
+        entity = Cluster.instance().get(path)
+        if not entity:
+            raise HTTPError(404)
+        self.render('entity.html', 
+                    class_name = entity.__class__.__name__,
+                    oid = entity.oid,
+                    table = get_view(entity).get_html())
+        
 
 def get_app():
     import os
     static_path = os.path.join(os.path.dirname(__file__), 'static') 
     template_path = os.path.join(os.path.dirname(__file__), 'templates')
-    return Application([(r'/', VMListHandler)], 
+    return Application([(r'/', VMListHandler),
+                        (r'/([^/]+)', EntityHandler),
+                        ],
+                       debug=options.debug,
                        static_path=static_path,
                        template_path=template_path)
 
 
-def load_fixtures():
+def load_fixtures(node_oid):
     "Load demo data for development"
-    import uuid
     from swarm.scenarios import on_report
     from swarm.tests import fixtures
     from swarm.reports import (NodeOnlineReport, VmXMLReport, IFConfigReport,
                                BrctlShowReport)
     log.debug('Loading test data')
-
-    node_oid = str(uuid.uuid4())
 
     on_report(NodeOnlineReport.create(node_oid,
                                       hostname='testhost'))
@@ -58,7 +72,11 @@ if __name__ == '__main__':
     define_common_options()
     parse_command_line()
     init_logging()
+    log.info("Starting application")
+    manager_oid = options.oid or str(uuid.uuid4())
     if options.on_test:
-        load_fixtures()
+        load_fixtures(manager_oid)
+    log.info("listen on %s:%s" % (options.http_host, options.http_port))
+    ManagerAMQPClient(oid=manager_oid, on_msg_callback=on_mngr_msg).connect()
     get_app().listen(options.http_port)
     IOLoop.instance().start()

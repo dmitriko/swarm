@@ -1,44 +1,21 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/html">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, maximum-scale=1">
+{% autoescape None %}
+{% extends "page.html" %}
+{% block title %} List of Virtual Machines {% end %}
+{% block page_content %}
+<div class="span10">
+  <table>
+    <thead>
+      <tr>
+	<th>Name</th>
+	<th class="right">VCPU</th>
+	<th class="right">Memory</th>
+	<th class="right">Host</th>
+	<th class="right">Nic</th>
+	<th class="right">Actions</th>
+      </tr>
+    </thead>
+    {% raw vm_list_tbody %}
+  </table>
+</div>
+{% end %}
 
-    <link href="/static/css/modern.css" rel="stylesheet">
-    <link href="/static/css/modern-responsive.css" rel="stylesheet">
-
-    <title> List of Virtual Machines </title>
-</head>
-<body class="modern-ui">
-  <div class="page secondary">
-    <div class="page-region">
-      <div class="page-region-content">
-	<div class="span10">
-	  <table>
-	    <thead>
-	      <tr>
-		<th>Name</th>
-		<th class="right">VCPU</th>
-		<th class="right">Memory</th>
-		<th class="right">Host</th>
-		<th class="right">Bridge</th>
-		<th class="right">Actions</th>
-	      </tr>
-	    </thead>
-	    <tbody>
-	      {% for vm in vm_list %}
-	      <td>{{ vm.vm_config.name }}</td>
-	      <td>{{ vm.vm_config.vcpu }}</td>
-	      <td>{{ int(vm.vm_config.memory) / 1024 }} Mb </td>
-	      <td>{{ vm.node.hostname }}</td>
-	      <td>{{ ", ".join([x.bridge for x in vm.vm_config.nics]) }}</td>
-	      <td></td>
-	      {% end %}
-	    </tbody>
-	  </table>
-	</div>
-      </div>
-    </div>
-  </div>
-</body>
-</html>

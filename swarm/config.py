@@ -44,8 +44,10 @@ def define_common_options():
 
     define('http_host', default='localhost',
            help='Address to listen on')
-           
+
+    define('oid', help='UUID of current node',
+           default='')           
+
 
 def define_node_options():
-    define('oid', help='UUID of current node')
     define('storages', help='Comma separated list of paths to storages')
