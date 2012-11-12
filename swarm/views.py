@@ -73,6 +73,8 @@ class HtmlView(object):
 
 def get_nic_link(node, name):
     nic = node.get_host_nic(name)
+    if nic is None:
+        return name
     return "<a href='/%s'> %s </a>" % (nic.oid, name)
 
 
@@ -133,12 +135,14 @@ class VmConfigView(HtmlView):
 def vm_list_tbody(vm_list):
     result = ['<tbody>']
     for vm in vm_list:
+        result.append("<tr>")
         memory = int(vm.vm_config.memory) / 1024
         result.append("<td>%s</td>" %  get_link(vm.vm_config))
         result.append("<td>%s</td>" %  vm.vm_config.vcpu)
         result.append("<td>%s Mb</td>" % memory)
         result.append("<td>%s</td>" %  get_link(vm.node))
         result.append("<td>%s</td>" % (
-                ", ".join([get_nic_link(vm.node, x.target) for x in vm.vm_config.nics])))
-    result.append('<td></td></tbody>')
+                ", ".join([get_nic_link(vm.node, x.target
+                                        ) for x in vm.vm_config.nics])))
+    result.append('<td></td></tr></tbody>')
     return '\n'.join(result)
