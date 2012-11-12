@@ -84,11 +84,11 @@ def on_brctl_show(report):
             if nic:
                 # if not - didn't get ifconfig report yet, nothing we can do
                 nic.in_bridge = bridge_name
-                node.update_host_nic(nic)
+                cluster.store(nic)
         bridge = node.get_host_nic(bridge_name)
         if bridge:
             bridge.bridge_for = nic_names
-            node.update_host_nic(bridge)
+            cluster.store(bridge)
 
 
 def on_ifconfig(report):
