@@ -68,7 +68,10 @@ def on_vmxml(report):
 def on_node_online(report):
     from swarm.stuff import Storage
     cluster = Cluster.instance()
-    node = Node(oid=report.node_oid, storages=report.storages, hostname=report.hostname)
+    node = Node(oid=report.node_oid, 
+                storages=report.storages, 
+                hostname=report.hostname,
+                state='online')
     cluster.store(node)
 
 
