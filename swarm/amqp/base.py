@@ -49,7 +49,7 @@ class AMQPClient(object):
     def __init__(self, on_msg_callback=None, oid=None, io_loop=None,
                  on_channel_created=None):
         self.oid = oid or options.oid
-        self.io_loop = io_loop
+        self.io_loop = io_loop or IOLoop.instance()
         self.on_msg_callback = on_msg_callback
         self.connection = None
         self.channel = None
