@@ -1,6 +1,7 @@
 "Main script to start manager process"
 
 import uuid
+import functools
 
 from tornado.options import options, parse_command_line
 from tornado.web import Application, RequestHandler, HTTPError
@@ -8,14 +9,40 @@ from tornado.ioloop import IOLoop
 
 from swarm.cluster import Cluster
 from swarm.entity import Entity
-from swarm.config import define_common_options
+from swarm.config import define_common_options, define_manager_options
 from swarm.utils.log import log, init_logging
 from swarm.amqp.mclient import ManagerAMQPClient
 from swarm.views import get_view, vm_list_tbody
 from swarm.scenarios.onevent import on_mngr_msg
 
 
+def HTTPBasic(method):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        import base64
+        try:
+            auth_type, auth_data = self.request.headers[
+                "Authorization"].split()
+            assert auth_type == "Basic"
+            usr, pwd = base64.b64decode(auth_data).split(":", 1)
+            if usr == options.user:
+                assert pwd == options.password, 'wrong password'
+            else:
+                assert False, "no such user"
+        except (KeyError, AssertionError), exc:
+            log.warn(
+                "No auth request %s, %s" % (
+                    self.request.headers, str(exc)))
+            self.set_header('WWW-Authenticate', 'Basic realm=VGDCloud')
+            self.set_status(401)
+            self.finish()
+        else:
+            return method(self, *args, **kwargs)
+    return wrapper
+
+
 class VMListHandler(RequestHandler):
+    @HTTPBasic
     def get(self):
         cluster = Cluster.instance()
         self.render('vmlist.html',  
@@ -24,7 +51,7 @@ class VMListHandler(RequestHandler):
 
 
 class EntityHandler(RequestHandler):
-
+    @HTTPBasic
     def get(self, path):
         """Return view for entity 
 
@@ -70,6 +97,7 @@ def load_fixtures(node_oid):
 
 if __name__ == '__main__':
     define_common_options()
+    define_manager_options()
     parse_command_line()
     init_logging()
     log.info("Starting application")

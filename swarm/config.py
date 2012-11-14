@@ -51,3 +51,7 @@ def define_common_options():
 
 def define_node_options():
     define('storages', help='Comma separated list of paths to storages')
+
+def define_manager_options():
+    define('user', help='Username for access via web')
+    define('password', help='Password to access via web')
