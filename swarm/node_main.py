@@ -87,6 +87,7 @@ def get_app():
                        debug=True)
 
 def vm_inventory(client):
+    log.debug('Inventory VMs')
     task = VMInventoryTask(node_oid=client.oid)
     worker = TaskThreadWorker(client, task)
     worker.start()
@@ -108,8 +109,9 @@ def channel_created(client):
     heartbeat = PeriodicCallback(partial(send_online_report, client),
                                  15000)
     heartbeat.start()
-    client.io_loop.add_deadline(partial(vm_inventory, client), 
-                                time.time() + 30)
+    client.io_loop.add_timeout(time.time() + 15,
+                               partial(vm_inventory, client))
+                               
 
 
 def on_msg(client, body, routing_key):
