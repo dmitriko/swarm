@@ -21,7 +21,7 @@ def on_node_started(client):
     import socket
     report = NodeOnlineReport.create(client.oid, 
                                     hostname=socket.gethostname())
-    report.storages = [x.to_dict() for x in Node.get_storage_points(client)]
+    report.storages = Node.get_storage_points(client)
     client.publish_report(report)
 
 
@@ -71,10 +71,10 @@ def on_node_online(report):
     from swarm.stuff import Storage
     cluster = Cluster.instance()
     node = Node(oid=report.node_oid, 
-                storages=report.storages, 
                 hostname=report.hostname,
                 state='online')
     cluster.store(node)
+    Storage.update_points(report.storages)
 
 
 def on_brctl_show(report):

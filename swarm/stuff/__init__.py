@@ -13,7 +13,6 @@ class Node(Entity):
 
     hostname = fields.BaseField('hostname')
     host_nics = fields.DictField('host_nics')
-    storages = fields.ListField('storages')
     vm_procs = fields.DictField('vm_procs')
     state = fields.BaseField('state', choices=['offline', 'online'])
 
@@ -25,6 +24,11 @@ class Node(Entity):
             nic = HostNic(host=self, name=name, **kw)
             self.host_nics[name] = nic.oid
             Cluster.instance().store(nic)
+
+    @property
+    def storages(self):
+        return [x for x in Cluster.instance().entities_by_class(
+                StoragePoint) if x.node_oid == self.oid]
 
     def get_host_nic(self, nic_name):
         cluster = Cluster.instance()
@@ -58,9 +62,9 @@ class Node(Entity):
             return []
         result = []
         for path in options.storages.split(','):
-            result.append(StoragePoint(node_oid=client.oid,
-                                       storage_oid=Storage.ensure(path),
-                                       path=path))
+            result.append(dict(node_oid=client.oid,
+                               storage_oid=Storage.ensure(path),
+                               path=path))
         return result
 
 
@@ -79,18 +83,43 @@ class HostNic(Entity):
 
 class StoragePoint(Entity):
     "Store host-storage relation, could be mount or just regular dir"
-    node_oid = fields.ReferenceField('node', required=True)
-    storage_oid = fields.ReferenceField('storage')
+    node_oid = fields.BaseField('node', required=True)
+    storage_oid = fields.BaseField('storage')
     path = fields.BaseField('path')
 
 
 class Storage(Entity):
+
+    avail = fields.BaseField('avail')
+
     def get_mount_points(self):
         "Return list of mount points for this storage"
         cluster = Cluster.instance()
         return [x for x in cluster.entities_by_class(
                 StoragePoint) if x.storage.oid == self.oid]
-    
+
+    @classmethod
+    def update_points(cls, points):
+
+        cluster = Cluster.instance()
+
+        def is_exists(info):
+            for spoint in cluster.entities_by_class(StoragePoint):
+                if spoint.node_oid == info['node_oid'] and \
+                        spoint.path == info['path'] and \
+                        spoint.storage_oid == info['storage_oid']:
+                    return True
+            return False
+
+        for point in points:
+            storage_oid = point['storage_oid']
+            if not cluster.is_stored(storage_oid):
+                cluster.store(Storage(oid=storage_oid))
+            if not is_exists(point):
+                cluster.store(StoragePoint(node_oid=point['node_oid'],
+                                           storage_oid=point['storage_oid'],
+                                           path=point['path']))
+
     @classmethod
     def ensure(cls, path, oid=None):
         """Create a dir in at file path, 
