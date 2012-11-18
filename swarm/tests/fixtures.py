@@ -162,3 +162,5 @@ LIBVIRT_XML = """<domain type='kvm' id='1'>
 
 
 VIRSH_LIST = ' Id    Name                           State\n----------------------------------------------------\n 1     usbvm                          running\n 2     hydravm                        running\n 4     testvm                         running\n'
+
+DF_RAW = 'Filesystem            Size  Used Avail Use% Mounted on\n/dev/mapper/vg_bart-lv_root\n                       50G  9.4G   38G  21% /\ntmpfs                  24G     0   24G   0% /dev/shm\n/dev/sda1             485M   40M  420M   9% /boot\n/dev/mapper/vg_bart-lv_home\n                      753G   13G  702G   2% /home'
