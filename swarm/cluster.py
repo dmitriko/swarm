@@ -44,6 +44,13 @@ class Cluster(object):
         else:
             self._data[entity.oid].set(entity.to_dict())
 
+    def is_stored(self, entity_or_oid):
+        if isinstance(entity_or_oid, Entity):
+            oid = entity_or_oid.oid
+        else:
+            oid = entity_or_oid
+        return oid in self._data
+
     def delete(self, entity_or_oid):
         "Remove item from storage, accept entity or oid"
         if isinstance(entity_or_oid, Entity):
