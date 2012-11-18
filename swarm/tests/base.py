@@ -27,6 +27,8 @@ DIR = os.path.realpath(os.path.dirname(__file__))
 class BaseTestCase(AsyncTestCase):
     def setUp(self):
         AsyncTestCase.setUp(self)
+        for key in options.keys():
+            del options[key]
         define_common_options()
         define_node_options()
         parse_config_file(os.path.join(DIR, 'config_data.py'))
@@ -41,8 +43,6 @@ class BaseTestCase(AsyncTestCase):
         self.storage2_oid = Storage.ensure(self.storage2_path)
 
     def tearDown(self):
-        for key in options.keys():
-            del options[key]
         try:
             shutil.rmtree(self.storage1_path)
             shutil.rmtree(self.storage2_path)
