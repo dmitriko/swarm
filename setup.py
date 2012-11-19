@@ -16,6 +16,10 @@ setup(name='swarm',
       author='DmitriKo',
       author_email='dmitrikozhevin@gmail.com',
       version=version,
+      entry_points = {'console_scripts': [
+            'swarm-node = swarm.node_main:main',
+            'swarm-manager = swarm.manager_main:main']},
+      data_files = [('/etc/init', ['swarm/scripts/swarm-node.conf'])],
       packages=find_packages(),
       install_requires=['tornado', 'pika'])
 
