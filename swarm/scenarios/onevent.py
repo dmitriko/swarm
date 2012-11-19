@@ -99,7 +99,7 @@ def on_node_online(report):
                 hostname=report.hostname,
                 state='online')
     cluster.store(node)
-    Storage.update_points(report.storages)
+    Storage.update_points(node, report.storages)
 
 
 def on_brctl_show(report):

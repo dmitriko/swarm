@@ -62,9 +62,9 @@ class Node(Entity):
             return []
         result = []
         for path in options.storages.split(','):
-            result.append(dict(node_oid=client.oid,
-                               storage_oid=Storage.ensure(path),
-                               path=path))
+            result.append(dict(
+                    storage_oid=Storage.ensure(path),
+                    path=path))
         return result
 
 
@@ -109,13 +109,13 @@ class Storage(Entity):
                 StoragePoint) if x.storage.oid == self.oid]
 
     @classmethod
-    def update_points(cls, points):
+    def update_points(cls, node, points):
 
         cluster = Cluster.instance()
 
         def is_exists(info):
             for spoint in cluster.entities_by_class(StoragePoint):
-                if spoint.node_oid == info['node_oid'] and \
+                if spoint.node_oid == node.oid and \
                         spoint.path == info['path'] and \
                         spoint.storage_oid == info['storage_oid']:
                     return True
@@ -126,7 +126,7 @@ class Storage(Entity):
             if not cluster.is_stored(storage_oid):
                 cluster.store(Storage(oid=storage_oid))
             if not is_exists(point):
-                cluster.store(StoragePoint(node_oid=point['node_oid'],
+                cluster.store(StoragePoint(node_oid=node.oid,
                                            storage_oid=point['storage_oid'],
                                            path=point['path']))
 
