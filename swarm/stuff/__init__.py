@@ -87,6 +87,16 @@ class StoragePoint(Entity):
     storage_oid = fields.BaseField('storage')
     path = fields.BaseField('path')
 
+    @property
+    def storage(self):
+        cluster = Cluster.instance()
+        storage = cluster.get(self.storage_oid)
+        if storage is None:
+            raise RuntimeError(
+                "Storage %s for mountpoint %s not exists" % (
+                    self.storage_oid, self))
+        return storage
+
 
 class Storage(Entity):
 
