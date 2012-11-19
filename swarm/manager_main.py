@@ -2,8 +2,9 @@
 
 import uuid
 import functools
+import os
 
-from tornado.options import options, parse_command_line
+from tornado.options import options, parse_command_line, parse_config_file
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
 
@@ -29,7 +30,7 @@ def HTTPBasic(method):
             if usr == options.user:
                 assert pwd == options.password, 'wrong password'
             else:
-                assert False, "no such user"
+                assert False, "no such user, %s" % usr
         except (KeyError, AssertionError), exc:
             log.warn(
                 "No auth request %s, %s" % (
@@ -100,10 +101,12 @@ def load_fixtures(node_oid):
     on_report(DFReport.create(node_oid, raw_data=fixtures.DF_RAW))
 
 
-if __name__ == '__main__':
+def main():
     define_common_options()
     define_manager_options()
     parse_command_line()
+    if options.config and os.path.exists(options.config):
+        parse_config_file(options.config)
     init_logging()
     log.info("Starting application")
     manager_oid = options.oid or str(uuid.getnode())
@@ -113,3 +116,7 @@ if __name__ == '__main__':
     ManagerAMQPClient(oid=manager_oid, on_msg_callback=on_mngr_msg).connect()
     get_app().listen(options.http_port)
     IOLoop.instance().start()
+
+
+if __name__ == '__main__':
+    main()
