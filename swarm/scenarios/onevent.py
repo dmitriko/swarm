@@ -2,9 +2,11 @@
 
 
 from swarm.entity import Entity
-from swarm.reports import IFConfigReport, BrctlShowReport, VmXMLReport, NodeOnlineReport
+from swarm.reports import (IFConfigReport, BrctlShowReport, VmXMLReport, 
+                           NodeOnlineReport, DFReport)
 from swarm.cluster import Cluster
-from swarm.stuff import Node, HostNic, Storage, VmProcess, VmConfig, VmNic, StoragePoint
+from swarm.stuff import (
+    Node, HostNic, Storage, VmProcess, VmConfig, VmNic, StoragePoint)
 from swarm.utils.log import log
 
 
@@ -34,6 +36,29 @@ def on_report(report):
         return on_brctl_show(report)
     if isinstance(report, VmXMLReport):
         return on_vmxml(report)
+    if isinstance(report, DFReport):
+        return on_dfreport(report)
+
+
+def on_dfreport(report):
+
+    def choose_mount_point(report, storage_point):
+        report_pathes = [(len(x), x) for x in report.parsed_data.keys()]
+        report_pathes.sort(key=lambda x:x[0], reverse=True)
+        report_pathes = [x[1] for x in report_pathes]
+        for mount_point in report_pathes:
+            if storage_point.path.startswith(mount_point):
+                return mount_point
+        raise RuntimeError("No mount point for given storage points")
+
+    cluster = Cluster.instance()
+
+    for storage_point in report.node.storages:
+        mount_point = choose_mount_point(report, storage_point)
+        storage = cluster.get(storage_point.storage_oid) or Storage(
+            storage_point.storage_oid)
+        storage.avail = report.parsed_data[mount_point]['avail']
+        cluster.store(storage)
 
 
 def on_report_from_offline_node(report):
@@ -81,7 +106,8 @@ def on_brctl_show(report):
     cluster = Cluster.instance()
     node = cluster.get(report.node_oid)
     if not node:
-        raise RuntimeError("Got report %s for non existed node" % report.__dict__)
+        raise RuntimeError(
+            "Got report %s for non existed node" % report.__dict__)
 
     for bridge_name, nic_names in report.parsed_data.items():
         for nic_name in nic_names:
