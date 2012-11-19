@@ -2,6 +2,8 @@
 
 import threading
 import uuid
+import time
+from copy import copy
 from collections import defaultdict
 
 from swarm.entity import Entity
@@ -49,8 +51,10 @@ class Cluster(object):
         if entity.oid not in self._data:
             self._data[entity.oid] = entity
         else:
-            self._data[entity.oid]._data.update(
-                entity._data)
+            info = copy(entity._data) # TODO move to Entity
+            del info['created']
+            info['updated'] = time.time()
+            self._data[entity.oid]._data.update(info)
 
     def is_stored(self, entity_or_oid):
         if isinstance(entity_or_oid, Entity):
