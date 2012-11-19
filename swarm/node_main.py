@@ -124,8 +124,7 @@ def on_msg(client, body, routing_key):
         log.error("on msg processing", exc_info=True)
 
 
-if __name__ == '__main__':
-#    get_app().listen(9443)
+def main():
     define_common_options()
     define_node_options()
     parse_command_line()
@@ -136,5 +135,9 @@ if __name__ == '__main__':
                             on_channel_created=channel_created)
     client.connect()
     IOLoop.instance().start()
+
+
+if __name__ == '__main__':
+    main()
 
 
