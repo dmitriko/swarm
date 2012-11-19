@@ -15,7 +15,8 @@ from swarm.config import define_common_options, define_node_options
 from swarm.entity import Entity
 from swarm.tasks.base import BaseTask
 from swarm.utils import SubprocessManager
-from swarm.reports import NodeOnlineReport, IFConfigReport, BrctlShowReport
+from swarm.reports import (NodeOnlineReport, IFConfigReport, BrctlShowReport,
+                           DFReport)
 from swarm.tasks import VMInventoryTask
 from swarm.tasks.worker import TaskThreadWorker
 
@@ -106,7 +107,8 @@ def channel_created(client):
     send_online_report(client)
     smanager = SubprocessManager(client)
     smanager.add_report(IFConfigReport, 30)
-    smanager.add_report(BrctlShowReport, 30)
+    smanager.add_report(BrctlShowReport, 300)
+    smanager.add_report(DFReport, 300)
     smanager.start()
     heartbeat = PeriodicCallback(partial(send_online_report, client),
                                  15000)
