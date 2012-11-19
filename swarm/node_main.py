@@ -19,7 +19,7 @@ from swarm.reports import (NodeOnlineReport, IFConfigReport, BrctlShowReport,
                            DFReport)
 from swarm.tasks import VMInventoryTask
 from swarm.tasks.worker import TaskThreadWorker
-
+from swarm.scenarios.onevent import on_node_started
 
 class NoVNCHandler(RequestHandler):
     def get(self, vm_uuid):
@@ -96,15 +96,9 @@ def vm_inventory(client):
     worker.start()
 
 
-def send_online_report(client):
-    client.publish_report(NodeOnlineReport.create(
-            client.oid,
-            hostname=socket.gethostname()))
-    
-
 def channel_created(client):
     log.debug("%s to RabbitMQ is created" % client.channel)
-    send_online_report(client)
+    on_node_started(client)
     smanager = SubprocessManager(client)
     smanager.add_report(IFConfigReport, 30)
     smanager.add_report(BrctlShowReport, 300)
