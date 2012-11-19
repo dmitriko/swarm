@@ -101,7 +101,8 @@ def on_node_online(report):
                     state='online')
         cluster.store(node)
     else:
-        cluster.get(report.node_oid).state = 'online'
+        node = cluster.get(report.node_oid)
+        node.state = 'online'
     Storage.update_points(node, report.storages)
 
 
