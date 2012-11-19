@@ -95,10 +95,13 @@ def on_vmxml(report):
 def on_node_online(report):
     from swarm.stuff import Storage
     cluster = Cluster.instance()
-    node = Node(oid=report.node_oid, 
-                hostname=report.hostname,
-                state='online')
-    cluster.store(node)
+    if not cluster.is_stored(report.node_oid):
+        node = Node(oid=report.node_oid, 
+                    hostname=report.hostname,
+                    state='online')
+        cluster.store(node)
+    else:
+        cluster.get(report.node_oid).state = 'online'
     Storage.update_points(node, report.storages)
 
 

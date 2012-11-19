@@ -5,7 +5,7 @@ from swarm.reports import NodeOnlineReport
 from swarm.stuff import Node
 
 
-from .base import AMQPCase
+from .base import AMQPCase, BaseTestCase
 
 
 class NodeManagerCommCase(AMQPCase):
@@ -46,3 +46,18 @@ class NodeManagerCommCase(AMQPCase):
         self.set_node(lambda *args: 1)
 
         self.wait()
+
+
+class NodeUpdateCase(BaseTestCase):
+    def test_update(self):
+        cluster = Cluster.instance()
+        node = Node(oid=self.node_oid,
+                    hostname='hostname')
+        cluster.store(node)
+        node.vm_procs = dict(a='dummy')
+        self.assertEqual(cluster.get(self.node_oid).vm_procs['a'],
+                         'dummy')
+        cluster.store(Node(oid=self.node_oid,
+                           hostname='hostname'))
+        self.assertEqual(cluster.get(self.node_oid).vm_procs['a'],
+                         'dummy')
