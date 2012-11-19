@@ -1,10 +1,11 @@
 import uuid
 import socket
 import time
+import os
 from functools import partial
 
 from tornado.ioloop import IOLoop, PeriodicCallback
-from tornado.options import options, parse_command_line
+from tornado.options import options, parse_command_line, parse_config_file
 from tornado.web import Application, HTTPError, url, RequestHandler
 from tornado.websocket import WebSocketHandler
 
@@ -46,7 +47,8 @@ class NoVNCWebSocketHandler(WebSocketHandler):
         "Return VNC port number"
         import commands
         import re
-        out = commands.getoutput('virsh -c qemu:///system vncdisplay %s' % self.vm_uuid)
+        out = commands.getoutput(
+            'virsh -c qemu:///system vncdisplay %s' % self.vm_uuid)
         match = re.search(':(\d)+', out)
         if not match:
             log.error("Coulg not get vnc port, %s" % out)
@@ -128,6 +130,8 @@ def main():
     define_common_options()
     define_node_options()
     parse_command_line()
+    if options.config and os.path.exists(options.config):
+        parse_config_file(options.config)
     init_logging()
     node_oid = options.oid or str(uuid.getnode())
     client = NodeAMQPClient(oid=node_oid, 
