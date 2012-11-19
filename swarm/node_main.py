@@ -104,7 +104,7 @@ def channel_created(client):
     smanager.add_report(BrctlShowReport, 300)
     smanager.add_report(DFReport, 300)
     smanager.start()
-    heartbeat = PeriodicCallback(partial(send_online_report, client),
+    heartbeat = PeriodicCallback(partial(on_node_started, client),
                                  15000)
     heartbeat.start()
     client.io_loop.add_timeout(time.time() + 15,
