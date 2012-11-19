@@ -21,6 +21,13 @@ class Cluster(object):
     def get(self, oid, default=None):
         return self._data.get(oid, default)
 
+    def get_or_error(self, oid):
+        entity = self._data.get(oid, None)
+        if entity is None:
+            raise RuntimeError(
+                "Entity with oid %s does not exist" % oid)
+        return entity
+
     def oids_by_class(self, class_):
         "Return list of stored oids for entites of given class"
 
