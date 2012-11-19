@@ -49,7 +49,8 @@ class Cluster(object):
         if entity.oid not in self._data:
             self._data[entity.oid] = entity
         else:
-            self._data[entity.oid].set(entity.to_dict())
+            self._data[entity.oid]._data.update(
+                entity._data)
 
     def is_stored(self, entity_or_oid):
         if isinstance(entity_or_oid, Entity):
