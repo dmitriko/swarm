@@ -14,6 +14,10 @@ class BaseReport(Entity):
         return cls(reporter_oid = node_oid,
                    node_oid = node_oid,
                    **kw)
+    @property
+    def node(self):
+        from swarm.cluster import Cluster
+        return Cluster.instance().get_or_error(self.node_oid)
 
 
 class SubprocessReport(BaseReport):
