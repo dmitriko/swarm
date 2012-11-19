@@ -88,13 +88,17 @@ class HostNicHtmlView(HtmlView):
     def get_value(self, field):
         value = HtmlView.get_value(self, field)
         if field == 'bridge_for' and value:
-            value = ", ".join([get_nic_link(self.entity.host, x) for x in value])
+            value = ", ".join([
+                    get_nic_link(self.entity.host, x) for x in value])
         if field == 'in_bridge' and value:
             value = get_nic_link(self.entity.host, value)
         return value
         
 
 class NodeHtmlView(HtmlView):
+
+    def get_fields(self):
+        return HtmlView.get_fields(self) + ['storages']
 
     def get_value(self, field):
 
@@ -109,6 +113,9 @@ class NodeHtmlView(HtmlView):
             value = ", ".join([simple_link(x) for x in value.values()])
         if field == 'host_nics':
             value = ", ".join([nic_link(x, y) for x, y in value.items()])
+        if field == 'storages':
+            value = ", ".join([str(dict(path=p.path, avail=p.storage.avail
+                                    )) for p in value])
         return value
     
 

@@ -84,16 +84,20 @@ def load_fixtures(node_oid):
     from swarm.scenarios import on_report
     from swarm.tests import fixtures
     from swarm.reports import (NodeOnlineReport, VmXMLReport, IFConfigReport,
-                               BrctlShowReport)
+                               BrctlShowReport, DFReport)
     log.debug('Loading test data')
-
+    storage_oid = str(uuid.uuid4())
     on_report(NodeOnlineReport.create(node_oid,
-                                      hostname='testhost'))
+                                      hostname='testhost',
+                                      storages = [dict(
+                    storage_oid=storage_oid, path='/home/vgdcloud/storage1')]))
+                    
     on_report(IFConfigReport.create(node_oid,
                                     raw_data=fixtures.IFCONFIG_DATA))
     on_report(BrctlShowReport.create(node_oid,
                                      raw_data=fixtures.BRCTL_SHOW_DATA))
     on_report(VmXMLReport.create(node_oid, raw_data=fixtures.LIBVIRT_XML))
+    on_report(DFReport.create(node_oid, raw_data=fixtures.DF_RAW))
 
 
 if __name__ == '__main__':
