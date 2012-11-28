@@ -13,7 +13,7 @@ from swarm.entity import Entity
 from swarm.config import define_common_options, define_manager_options
 from swarm.utils.log import log, init_logging
 from swarm.amqp.mclient import ManagerAMQPClient
-from swarm.views import get_view, vm_list_tbody
+from swarm.views import get_entity_view, vm_list_view
 from swarm.scenarios.onevent import on_mngr_msg
 from swarm import tasks
 
@@ -43,19 +43,34 @@ def HTTPBasic(method):
     return wrapper
 
 
-class VMListHandler(RequestHandler):
-    @HTTPBasic
-    def get(self):
-        cluster = Cluster.instance()
-        self.render('vmlist.html',  
-                    vm_list_tbody = vm_list_tbody(
-                cluster.entities_by_class('VmProcess')))
-
 class IPython(RequestHandler):
     def get(self):
+        cluster = Cluster.instance()
         import IPython; IPython.embed()
         self.redirect('/')
 
+
+class IndexHandler(RequestHandler):
+    @HTTPBasic
+    def get(self):
+        self.render('page.html',
+                    cmd=None,
+                    view=None)
+    @HTTPBasic
+    def post(self):
+        cmd = self.get_argument('cmd', '')
+        cluster = Cluster.instance()
+        view = None
+        if cmd == 'vms':
+            view = vm_list_view(
+                cluster.entities_by_class('VmProcess'))
+        entity = cluster.search(cmd)
+        if entity:
+            self.redirect('/%s' % entity.oid)
+        self.render('page.html',
+                    cmd=cmd,
+                    view=view)
+    
 
 class EntityHandler(RequestHandler):
     @HTTPBasic
@@ -70,14 +85,15 @@ class EntityHandler(RequestHandler):
         self.render('entity.html', 
                     class_name = entity.__class__.__name__,
                     oid = entity.oid,
-                    table = get_view(entity).get_html())
+                    cmd = entity.oid,
+                    table = get_entity_view(entity).get_html())
         
 
 def get_app():
     import os
     static_path = os.path.join(os.path.dirname(__file__), 'static') 
     template_path = os.path.join(os.path.dirname(__file__), 'templates')
-    return Application([(r'/', VMListHandler),
+    return Application([(r'/', IndexHandler),
                         (r'/ipython', IPython),
                         (r'/([^/]+)', EntityHandler),
                         ],

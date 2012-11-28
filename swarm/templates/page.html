@@ -10,11 +10,26 @@
     <title>{% block title %} {% end %} </title>
 </head>
 <body class="modern-ui">
-  {% block menu %} <a href='/'>Refresh</a>{% end %}
+  {% block menu %} <a href='/'>VGDCloud</a>{% end %}
+
   <div class="page secondary">
     <div class="page-region">
       <div class="page-region-content">
-	{% block page_content %} {% end %}
+	{% block cmd_region %}
+	<form action="/" method="POST">
+	  <div class="span10">
+	    <div class="input-control textarea">
+	      <textarea name="cmd">{% if cmd %}{{ cmd }}{% end %}</textarea>
+	    </div>
+	  </div>
+	  <div class="offset9">
+	    <input type="submit" value=" Enter " />
+	  </div>
+	</form>
+	{% end %}
+	{% block page_content %} 
+	{% if view %} {% raw view %} {% end %}
+	{% end %}
       </div>
     </div>
   </div>

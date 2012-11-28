@@ -4,7 +4,7 @@ from swarm.stuff import Node, VmConfig, HostNic
 from swarm.entity import Entity
 
 
-def get_view(entity):
+def get_entity_view(entity):
     if isinstance(entity, VmConfig):
         return VmConfigView(entity)
     if isinstance(entity, Node):
@@ -95,6 +95,10 @@ class HostNicHtmlView(HtmlView):
         return value
         
 
+def simple_link(oid):
+    return "<a href='/%s'> %s </a>" % (oid, oid)
+
+
 class NodeHtmlView(HtmlView):
 
     def get_fields(self):
@@ -104,9 +108,6 @@ class NodeHtmlView(HtmlView):
 
         def nic_link(name, oid):
             return "<a href='/%s'> %s </a>" % (oid, name)
-
-        def simple_link(oid):
-            return "<a href='/%s'> %s </a>" % (oid, oid)
 
         value = HtmlView.get_value(self, field)
         if field == 'vm_procs':
@@ -123,7 +124,9 @@ class VmConfigView(HtmlView):
 
     def get_fields(self):
         return HtmlView.BASE_FIELDS + [
-            'name', 'vcpu', 'memory', 'features', 'nics', 'libvirt_xml']
+            'name', 'vcpu', 'memory', 'host',
+            'features', 'nics', 'libvirt_xml']
+
 
     def get_value(self, field):
 
@@ -153,3 +156,22 @@ def vm_list_tbody(vm_list):
                                         ) for x in vm.vm_config.nics])))
     result.append('<td></td></tr></tbody>')
     return '\n'.join(result)
+
+
+def vm_list_view(vm_list):
+    return """<div class="span10">
+  <table>
+    <thead>
+      <tr>
+	<th>Name</th>
+	<th class="right">VCPU</th>
+	<th class="right">Memory</th>
+	<th class="right">Host</th>
+	<th class="right">Nic</th>
+	<th class="right">Actions</th>
+      </tr>
+    </thead>
+   %s
+  </table>
+</div>""" % vm_list_tbody(vm_list)
+
