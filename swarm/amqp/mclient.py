@@ -39,6 +39,7 @@ class ManagerAMQPClient(AMQPClient):
 
     def send_task(self, task):
         "Put task msg to rpc exchange"
+        log.debug("Sending %s" % task.to_json())
         self.channel.basic_publish(body=task.to_json(),
                              exchange=options.rpc_exchange,
                              routing_key=task.node_oid,

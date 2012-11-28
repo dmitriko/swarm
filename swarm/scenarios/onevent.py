@@ -106,7 +106,10 @@ def on_node_online(report):
                     state='online')
         cluster.store(node)
         if CLIENT:
-            CLIENT.send_task(VMInventoryTask(node_oid=node.oid))
+            task = VMInventoryTask(node_oid=node.oid)
+            cluster.store(task)
+            CLIENT.send_task(task)
+        log.warn("No client available in on_node_online")
     else:
         node = cluster.get(report.node_oid)
         node.state = 'online'
