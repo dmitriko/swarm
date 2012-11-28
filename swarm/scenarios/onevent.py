@@ -9,9 +9,13 @@ from swarm.stuff import (
     Node, HostNic, Storage, VmProcess, VmConfig, VmNic, StoragePoint)
 from swarm.utils.log import log
 
+CLIENT = None
+
 
 def on_mngr_msg(client, body, routing_key):
     from swarm.reports.base_report import BaseReport
+    global CLIENT
+    CLIENT = client
     log.debug("got msg %s" % body)
     entity = Entity.from_json(body)
     if isinstance(entity, BaseReport):
@@ -94,12 +98,15 @@ def on_vmxml(report):
 
 def on_node_online(report):
     from swarm.stuff import Storage
+    from swarm.tasks import VMInventoryTask
     cluster = Cluster.instance()
     if not cluster.is_stored(report.node_oid):
         node = Node(oid=report.node_oid, 
                     hostname=report.hostname,
                     state='online')
         cluster.store(node)
+        if CLIENT:
+            CLIENT.send_task(VMInventoryTask(node_oid=node.oid))
     else:
         node = cluster.get(report.node_oid)
         node.state = 'online'
