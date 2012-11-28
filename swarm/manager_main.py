@@ -51,6 +51,11 @@ class VMListHandler(RequestHandler):
                     vm_list_tbody = vm_list_tbody(
                 cluster.entities_by_class('VmProcess')))
 
+class IPython(RequestHandler):
+    def get(self):
+        import IPython; IPython.embed()
+        self.redirect('/')
+
 
 class EntityHandler(RequestHandler):
     @HTTPBasic
@@ -73,6 +78,7 @@ def get_app():
     static_path = os.path.join(os.path.dirname(__file__), 'static') 
     template_path = os.path.join(os.path.dirname(__file__), 'templates')
     return Application([(r'/', VMListHandler),
+                        (r'/ipython', IPython),
                         (r'/([^/]+)', EntityHandler),
                         ],
                        debug=options.debug,

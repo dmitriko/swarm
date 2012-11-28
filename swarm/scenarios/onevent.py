@@ -16,8 +16,8 @@ def on_mngr_msg(client, body, routing_key):
     from swarm.reports.base_report import BaseReport
     global CLIENT
     CLIENT = client
-    log.debug("got msg %s" % body)
     entity = Entity.from_json(body)
+    log.debug("got msg %s, client is %s" % (entity.__class__.__name__, CLIENT))
     if isinstance(entity, BaseReport):
         return on_report(entity)
 
@@ -109,7 +109,8 @@ def on_node_online(report):
             task = VMInventoryTask(node_oid=node.oid)
             cluster.store(task)
             CLIENT.send_task(task)
-        log.warn("No client available in on_node_online")
+        else:
+            log.warn("No client available in on_node_online")
     else:
         node = cluster.get(report.node_oid)
         node.state = 'online'
@@ -140,7 +141,8 @@ def on_ifconfig(report):
     cluster = Cluster.instance()
     node = cluster.get(report.node_oid)
     if not node:
-        raise RuntimeError("Cluster has no Node %s" % report.node_oid)
+        # Node is not ready
+        return 
     for name, info in report.parsed_data.items():
         mac = info.get('mac')
         if not mac:
