@@ -56,7 +56,8 @@ def on_dfreport(report):
         raise RuntimeError("No mount point for given storage points")
 
     cluster = Cluster.instance()
-
+    if not cluster.is_stored(report.node_oid):
+        return 
     for storage_point in report.node.storages:
         mount_point = choose_mount_point(report, storage_point)
         storage = cluster.get(storage_point.storage_oid) or Storage(
@@ -121,8 +122,7 @@ def on_brctl_show(report):
     cluster = Cluster.instance()
     node = cluster.get(report.node_oid)
     if not node:
-        raise RuntimeError(
-            "Got report %s for non existed node" % report.__dict__)
+        return 
 
     for bridge_name, nic_names in report.parsed_data.items():
         for nic_name in nic_names:
