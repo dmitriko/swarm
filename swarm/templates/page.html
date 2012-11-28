@@ -16,7 +16,7 @@
     <div class="page-region">
       <div class="page-region-content">
 	{% block cmd_region %}
-	<form action="/" method="POST">
+	<form action="/" method="POST" name="CmdForm">
 	  <div class="span10">
 	    <div class="input-control textarea">
 	      <textarea name="cmd">{% if cmd %}{{ cmd }}{% end %}</textarea>
@@ -25,6 +25,9 @@
 	  <div class="offset9">
 	    <input type="submit" value=" Enter " />
 	  </div>
+	  <script>
+	    document.forms['CmdForm'].elements['cmd'].focus();
+	  </script>
 	</form>
 	{% end %}
 	{% block page_content %} 
