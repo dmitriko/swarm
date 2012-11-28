@@ -116,7 +116,7 @@ def on_msg(client, body, routing_key):
     try:
         entity = Entity.from_json(body)
         assert isinstance(entity, BaseTask)
-        worker = TaskThreadWorker(client, task)
+        worker = TaskThreadWorker(client, entity)
         worker.start()
     except Exception:
         log.error("on msg processing", exc_info=True)
