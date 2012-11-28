@@ -196,6 +196,13 @@ class VmConfig(Entity):
     libvirt_xml = fields.BaseField('libvirt_xml')
     features = fields.SetField('features')
 
+    @property
+    def host(self):
+        cluster = Cluster.instance()
+        for proc in cluster.entities_by_class("VmProcess"):
+            if proc.vm_config.oid == self.oid:
+                return proc.node
+        return None
 
     def to_xml(self):
         "Create xml to use in libvirt"
