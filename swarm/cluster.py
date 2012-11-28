@@ -79,3 +79,17 @@ class Cluster(object):
                 if not hasattr(Cluster, "_instance"):
                     Cluster._instance = Cluster()
         return Cluster._instance
+
+    def search(self, query):
+        if self._data.has_key(query):
+            return self._data[query]
+        for node in self.entities_by_class('Node'):
+            if node.hostname == query:
+                return node
+        for vm_config in self.entities_by_class('VmConfig'):
+            if vm_config.name.startswith(query):
+                return vm_config
+        for item in self._data.values():
+            if item.oid.startswith(query):
+                return item
+        return None
