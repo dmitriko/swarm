@@ -21,26 +21,6 @@ def get_conn_params():
                                      port=options.amqp_port,
                                      virtual_host=options.amqp_vhost,
                                      credentials=credentials)
-
-
-class AMQPConnection(TornadoConnection):
-    """Provide pika.TornadoConnection but with ability to set
-    ioloop excplicitly for testing etc
-
-    """
-    def __init__(self, parameters, on_open, io_loop=None):
-        self.io_loop = io_loop or IOLoop.instance()
-        TornadoConnection.__init__(self, parameters, on_open)
-
-    def _adapter_connect(self, host, port):
-        "Connect to the given host and port"
-        BaseConnection._adapter_connect(self, host, port)
-        self.ioloop = self.io_loop
-        self.ioloop.add_handler(self.socket.fileno(),
-                                self._handle_events,
-                                self.event_state)
-        log.debug("adapter connecting to RabbitMQ %s %s" % (host, port))
-        self._on_connected()
    
 
 class AMQPClient(object):
@@ -61,10 +41,10 @@ class AMQPClient(object):
         log.debug("Connecting to RabbitMQ")
         if self.connection:
             return
-        self.connection = AMQPConnection(
+        self.connection = TornadoConnection(
             get_conn_params(),
             self.on_connected,
-            io_loop=self.io_loop)
+            custom_ioloop=self.io_loop)
 
     def on_connected(self, connection):
         "Create a channel just after connected"

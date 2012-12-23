@@ -10,7 +10,7 @@ for uninstall
 
 from setuptools import setup, find_packages
 
-version = '0.8.2'
+version = '0.8.4'
 
 setup(name='swarm',
       author='DmitriKo',
@@ -21,5 +21,5 @@ setup(name='swarm',
             'swarm-manager = swarm.manager_main:main']},
       data_files = [('/etc/init', ['swarm/scripts/swarm-node.conf'])],
       packages=find_packages(),
-      install_requires=['tornado', 'pika'])
+      install_requires=['tornado', 'pika==0.9.8'])
 

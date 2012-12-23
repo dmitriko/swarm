@@ -60,9 +60,10 @@ class AMQPCase(BaseTestCase):
         parameters = pika.ConnectionParameters('localhost')
         connection = pika.BlockingConnection(parameters)
         channel = connection.channel()
-        channel.exchange_declare(exchange=options.rpc_exchange, type='topic')
+        channel.exchange_declare(exchange=options.rpc_exchange, 
+                                 exchange_type='topic')
         channel.exchange_declare(exchange=options.reports_exchange, 
-                                 type='topic')
+                                 exchange_type='topic')
         channel.queue_declare(queue=options.reports_queue)
 
         channel.queue_bind(queue=options.reports_queue, 

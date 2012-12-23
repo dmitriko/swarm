@@ -17,9 +17,11 @@ class ManagerAMQPClient(AMQPClient):
         AMQPClient.on_channel_created(self, channel)
 
         yield gen.Task(channel.exchange_declare,
-                       exchange=options.rpc_exchange, type='topic')
+                       exchange=options.rpc_exchange, 
+                       exchange_type='topic')
         yield gen.Task(channel.exchange_declare,
-                       exchange=options.reports_exchange, type='topic')
+                       exchange=options.reports_exchange, 
+                       exchange_type='topic')
         yield gen.Task(channel.queue_declare, queue=options.reports_queue)
 
         log.debug("Exchanges for Manager are declared")
