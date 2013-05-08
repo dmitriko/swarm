@@ -58,6 +58,7 @@ class IndexHandler(RequestHandler):
                     view=None)
     @HTTPBasic
     def post(self):
+        import IPython; IPython.embed()
         cmd = self.get_argument('cmd', '')
         cluster = Cluster.instance()
         view = None
